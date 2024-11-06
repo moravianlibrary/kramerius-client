@@ -1,4 +1,5 @@
 import argparse
+import os
 from .client import KrameriusClient
 from .search import KrameriusSearch
 
@@ -21,7 +22,11 @@ def main():
 
     args = parser.parse_args()
 
-    client = KrameriusClient()
+    client = KrameriusClient(
+        args.host or os.getenv("K7_HOST"),
+        args.username or os.getenv("K7_USERNAME"),
+        args.password or os.getenv("K7_PASSWORD"),
+    )
     k_search = KrameriusSearch(client)
 
     if args.action == "GetDocument":
