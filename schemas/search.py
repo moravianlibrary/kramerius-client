@@ -1,121 +1,8 @@
 from __future__ import annotations
 from enum import Enum
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional
 from pydantic import BaseModel
-from .client import KrameriusClient
-from .document import KrameriusDocument
-from .types import SolrConjuction, Field
-
-
-START_CURSOR_MARK = "*"
-PAGINATE_PAGE_SIZE = 100
-# PAGINATE_PAGE_SIZE = 1000
-
-SolrValue = Union[str, int, float, List, Tuple, Enum]
-
-
-class KrameriusSearch:
-    def __init__(self, client: KrameriusClient):
-        self.client = client
-
-    def get_document(self, pid):
-        params = SearchParams().with_rows(1).with_query(base_(Field.Pid, pid))
-        response = self.client.search(params.build())
-        return (
-            KrameriusDocument(response["response"]["docs"][0])
-            if response["response"]["numFound"] > 0
-            else None
-        )
-
-    def num_found(self, query: SearchQuery | str):
-        params = SearchParams().with_query(query).with_rows(0)
-        return self.client.search(params.build())["response"]["numFound"]
-
-    def search(
-        self, query: SearchQuery | str, fl: Optional[List[Field]] = None
-    ):
-        params = (
-            SearchParams()
-            .with_query(query)
-            .with_rows(PAGINATE_PAGE_SIZE)
-            .with_fl(fl)
-        )
-        numFound = self.num_found(query)
-        if numFound <= PAGINATE_PAGE_SIZE:
-            for document in self.client.search(params.build())["response"][
-                "docs"
-            ]:
-                yield KrameriusDocument(document)
-            return
-
-        params = params.with_pagination()
-        while True:
-            response = self.client.search(params.build())
-
-            for document in response["response"]["docs"]:
-                yield KrameriusDocument(document)
-
-            numFound = response["response"]["numFound"]
-            nextCursorMark = response["nextCursorMark"]
-
-            if nextCursorMark == params.cursorMark:
-                break
-            params.with_cursor_mark(nextCursorMark)
-
-
-class SearchParams:
-    def __init__(self):
-        self.query = "*"
-        self.rows = 10
-        self.start = 0
-        self.fl: Optional[List[Field]] = None
-        self.fq = None
-        self.sort = None
-        self.cursorMark = None
-
-    def with_query(self, query):
-        self.query = query
-        return self
-
-    def with_rows(self, rows):
-        self.rows = rows
-        return self
-
-    def with_start(self, start):
-        self.start = start
-        return self
-
-    def with_fl(self, fl: List[Field]):
-        self.fl = fl
-        return self
-
-    def with_fq(self, fq):
-        self.fq = fq
-        return self
-
-    def with_pagination(self):
-        self.sort = "pid ASC"
-        self.cursorMark = START_CURSOR_MARK
-        return self
-
-    def with_cursor_mark(self, cursorMark):
-        self.cursorMark = cursorMark
-        return self
-
-    def build(self):
-        return {
-            "q": (
-                self.query.build()
-                if isinstance(self.query, SearchQuery)
-                else self.query
-            ),
-            "rows": self.rows,
-            "start": self.start,
-            "fl": ",".join([fl.value for fl in self.fl]) if self.fl else None,
-            "fq": self.fq,
-            "cursorMark": self.cursorMark,
-            "sort": self.sort,
-        }
+from ..datatypes import SolrConjuction, Field, SolrValue, StartCursorMark
 
 
 class SearchQuery(BaseModel):
@@ -233,3 +120,33 @@ def base_(*args) -> SearchQuery:
 
 def not_(*args) -> SearchQuery:
     return SearchQuery.not_(*args)
+
+
+class SearchParams(BaseModel):
+    query: str
+    rows: int | None = None
+    start: int | None = None
+    fl: List[Field] | None = None
+    fq: str | None = None
+    sort: str | None = None
+    cursorMark: str | None = None
+
+    def with_pagination(self):
+        self.sort = "pid ASC"
+        self.cursorMark = StartCursorMark
+        return self
+
+    def build(self):
+        return {
+            "q": (
+                self.query.build()
+                if isinstance(self.query, SearchQuery)
+                else self.query
+            ),
+            "rows": self.rows,
+            "start": self.start,
+            "fl": ",".join([fl.value for fl in self.fl]) if self.fl else None,
+            "fq": self.fq,
+            "cursorMark": self.cursorMark,
+            "sort": self.sort,
+        }

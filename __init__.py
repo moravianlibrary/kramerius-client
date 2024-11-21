@@ -1,7 +1,5 @@
 from .client import KrameriusClient
-from .search import KrameriusSearch, SearchQuery, base_, not_
-from .document import KrameriusDocument
-from .types import (
+from .datatypes import (
     Field,
     SolrConjuction,
     Pid,
@@ -11,6 +9,8 @@ from .types import (
     MimeType,
     Accessibility,
 )
+from .schemas import SearchQuery, base_, not_, KrameriusDocument
+
 
 __all__ = [
     "KrameriusClient",

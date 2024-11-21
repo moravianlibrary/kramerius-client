@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from .types import Field
+from ..datatypes import Field
 
 
 class KrameriusDocument:

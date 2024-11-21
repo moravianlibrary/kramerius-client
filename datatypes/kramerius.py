@@ -1,8 +1,27 @@
 from enum import Enum
 import uuid
+from typing import Any, Dict, Literal
+from typing_extensions import Annotated
+from pydantic import AfterValidator
 
 
-Wildcard = "*"
+Method = Literal["GET", "OPTIONS", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
+type Params = Dict[str, Any]
+
+
+def validate_pid(pid: str) -> str:
+    try:
+        uuid_ = pid[5:] if pid.startswith("uuid:") else pid
+        uuid.UUID(uuid_)
+        return f"uuid:{uuid_}"
+    except ValueError:
+        raise ValueError("Invalid UUID format")
+
+
+Pid = Annotated[
+    str,
+    AfterValidator(lambda x: validate_pid(x)),
+]
 
 
 class Field(Enum):
@@ -46,35 +65,6 @@ class Field(Enum):
     ImageFullMimeType = "ds.img_full.mime"
 
 
-class SolrConjuction(Enum):
-    And = " AND "
-    Or = " OR "
-
-
-class Pid:
-    def __init__(self, value: str):
-        try:
-            self._uuid = uuid.UUID(
-                value[5:] if value.startswith("uuid:") else value
-            )
-        except ValueError:
-            raise ValueError("Invalid UUID format")
-
-    def __str__(self):
-        return f"uuid:{self._uuid}"
-
-    def __repr__(self):
-        return f"Pid('{self}')"
-
-    def __eq__(self, other):
-        if isinstance(other, Pid):
-            return self._uuid == other._uuid
-        return False
-
-    def __hash__(self):
-        return hash(self._uuid)
-
-
 class Model(Enum):
     Periodical = "periodical"
     PeriodicalVolume = "periodicalvolume"
@@ -89,34 +79,13 @@ class Model(Enum):
     Collection = "collection"
     InternalPart = "internalpart"
     Track = "track"
-
-
-class TreePredicate(Enum):
-    HasPage = "hasPage"
-    HasPart = "hasPart"
-    HasVolume = "hasVolume"
-    HasItem = "hasItem"
-    HasUnit = "hasUnit"
-    HasIntCompPart = "hasIntCompPart"
-    IsOnPage = "isOnPage"
-
-
-class License(Enum):
-    Public = "public"
-    OnSite = "onsite"
-    OnSiteSheetmusic = "onsite-sheetmusic"
-    Dnnto = "dnnto"
-    Dnntt = "dnntt"
-    PublicOnContract = "mzk_public-contract"
-    PublicMUO = "mzk_public-muo"
-    Covid = "covid"
-    License = "license"
-
-
-class MimeType(Enum):
-    Pdf = "application/pdf"
+    Map = "map"
 
 
 class Accessibility(Enum):
     Public = "public"
     Private = "private"
+
+
+class MimeType(Enum):
+    Pdf = "application/pdf"
