@@ -74,11 +74,10 @@ def main():
             if len(record.sync_actions) > 1:
                 print(f"Multiple actions in record: {record}")
             elif record.sync_actions[0] == SdnntSyncAction.PartialChange:
-                granularity = client.Sdnnt.get_sdnnt_granularity(record.id)
-                print(granularity)
+                for granularity in client.Sdnnt.get_sdnnt_granularity(record.id):
+                    print(granularity)
             elif len(record.sync_actions) == 1:
-                # print(record)
-                pass
+                print(record)
             else:
                 print(f"No sync actions in record: {record}")
 
