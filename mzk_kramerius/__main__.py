@@ -70,11 +70,14 @@ def main():
             exit(1)
 
     elif args.action == "GetSdnntChanges":
+        print(f"Sdnnt sync timestamp: {client.Sdnnt.get_sdnnt_timestamp()}")
         for record in client.Sdnnt.iterate_sdnnt_changes():
             if len(record.sync_actions) > 1:
                 print(f"Multiple actions in record: {record}")
             elif record.sync_actions[0] == SdnntSyncAction.PartialChange:
-                for granularity in client.Sdnnt.get_sdnnt_granularity(record.id):
+                for granularity in client.Sdnnt.get_sdnnt_granularity(
+                    record.id
+                ):
                     print(granularity)
             elif len(record.sync_actions) == 1:
                 print(record)

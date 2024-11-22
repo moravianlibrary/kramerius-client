@@ -28,3 +28,5 @@ __all__ = [
     "MimeType",
     "Accessibility",
 ]
+
+__version__ = "0.0.2"
