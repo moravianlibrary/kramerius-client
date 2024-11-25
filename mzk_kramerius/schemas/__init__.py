@@ -1,6 +1,7 @@
 from .document import KrameriusDocument
 from .processing import (
     KrameriusProcess,
+    KrameriusPlanProcess,
     ImportParams,
     ImportMetsParams,
     IndexParams,
@@ -20,6 +21,7 @@ from .search import SearchParams, SearchQuery, base_, not_
 
 __all__ = [
     "KrameriusProcess",
+    "KrameriusPlanProcess",
     "ImportParams",
     "ImportMetsParams",
     "IndexParams",

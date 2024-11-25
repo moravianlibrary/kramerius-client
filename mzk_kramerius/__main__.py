@@ -1,16 +1,31 @@
 import argparse
 import os
 from .client import KrameriusClient
-from .datatypes import validate_pid, SdnntSyncAction
+from .datatypes import validate_pid, SdnntSyncAction, ProcessType
 
 
 def main():
     parser = argparse.ArgumentParser(description="Kramerius Search Client")
+    parser.add_argument("--host", type=str, help="Kramerius host")
+    parser.add_argument("--keycloak-host", type=str, help="Keycloak host")
+    parser.add_argument("--client-id", type=str, help="Keycloak client ID")
+    parser.add_argument(
+        "--client-secret", type=str, help="Keycloak client secret"
+    )
+    parser.add_argument("--username", type=str, help="Kramerius username")
+    parser.add_argument("--password", type=str, help="Kramerius password")
     parser.add_argument(
         "action",
-        choices=["GetDocument", "GetNumFound", "SearchFor", "GetSdnntChanges"],
+        choices=[
+            "GetDocument",
+            "GetNumFound",
+            "SearchFor",
+            "GetSdnntChanges",
+            "PlanSdnntSync",
+            "GetProcess",
+        ],
         help="Action to perform: GetDocument, GetNumFound, SearchFor,"
-        " or GetSdnntChanges",
+        ", GetSdnntChanges, PlanSdnntSync or GetProcess",
     )
     parser.add_argument("--pid", type=str, help="PID of a document")
     parser.add_argument(
@@ -20,14 +35,15 @@ def main():
     parser.add_argument(
         "--fl", nargs="*", help="Optional fields list for search results"
     )
-    parser.add_argument("--host", type=str, help="Kramerius host")
-    parser.add_argument("--username", type=str, help="Kramerius username")
-    parser.add_argument("--password", type=str, help="Kramerius password")
+    parser.add_argument("--process-id", type=str, help="ID of a process")
 
     args = parser.parse_args()
 
     client = KrameriusClient(
         args.host or os.getenv("K7_HOST"),
+        args.keycloak_host or os.getenv("K7_KEYCLOAK_HOST"),
+        args.client_id or os.getenv("K7_CLIENT_ID"),
+        args.client_secret or os.getenv("K7_CLIENT_SECRET"),
         args.username or os.getenv("K7_USERNAME"),
         args.password or os.getenv("K7_PASSWORD"),
     )
@@ -83,6 +99,17 @@ def main():
                 print(record)
             else:
                 print(f"No sync actions in record: {record}")
+
+    elif args.action == "PlanSdnntSync":
+        client.Processing.plan(ProcessType.SdnntSync)
+
+    elif args.action == "GetProcess":
+        if args.process_id:
+            process = client.Processing.get(args.process_id)
+            print(process)
+        else:
+            print("Please provide a process ID with --process-id.")
+            exit(1)
 
 
 if __name__ == "__main__":

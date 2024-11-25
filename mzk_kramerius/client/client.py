@@ -9,13 +9,23 @@ class KrameriusClient:
     def __init__(
         self,
         host: str,
+        keycloak_host: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         username: str | None = None,
         password: str | None = None,
         timeout: int | None = None,
         max_retries: int | None = None,
     ):
         self._base = KrameriusBaseClient(
-            host, username, password, timeout, max_retries
+            host,
+            keycloak_host,
+            client_id,
+            client_secret,
+            username,
+            password,
+            timeout,
+            max_retries,
         )
 
         self.Items = ItemsClient(self._base)

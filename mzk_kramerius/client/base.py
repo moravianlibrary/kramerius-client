@@ -3,26 +3,51 @@ from time import sleep
 from ..datatypes import Method, Params
 from typing import Any
 import threading
+from os import path
 
 
 DEFAULT_TIMEOUT = 15
 DEFAULT_MAX_RETRIES = 5
+TOKEN_TMP_FILE = "/tmp/kramerius_token"
+TOKEN_CALL = "{KEYCLOAK_HOST}/realms/kramerius/protocol/openid-connect/token"
 
 
 class KrameriusBaseClient:
     def __init__(
         self,
         host: str,
+        keycloak_host: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         username: str | None = None,
         password: str | None = None,
         timeout: int | None = None,
         max_retries: int | None = None,
     ):
         self.base_url = host.strip("/")
-        self.username = username
-        self.password = password
+
+        self._keycloak_host = None
+        self._get_token_body = None
+        if (
+            keycloak_host
+            and client_id
+            and client_secret
+            and username
+            and password
+        ):
+            self._keycloak_host = keycloak_host
+            self._get_token_body = {
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "username": username,
+                "password": password,
+                "grant_type": "password",
+            }
 
         self._token = None
+        if path.exists(TOKEN_TMP_FILE):
+            with open(TOKEN_TMP_FILE, "r") as f:
+                self._token = f.read().strip()
 
         self.lock = threading.Lock()
         self.timeout = timeout or DEFAULT_TIMEOUT
@@ -31,25 +56,27 @@ class KrameriusBaseClient:
         self.retries = 0
 
     def _fetch_access_token(self):
-        if not self.username or not self.password:
-            raise ValueError(
-                "Username and password must be provided to use admin API."
+        if self._get_token_body is None:
+            raise Exception(
+                "Authorization parameters are not provided. "
+                "Please set them to use admin API."
             )
 
-        response = self._request(
-            "POST",
-            "/api/auth/token",
-            data={"username": self.username, "password": self.password},
+        response = requests.post(
+            TOKEN_CALL.format(KEYCLOAK_HOST=self._keycloak_host),
+            data=self._get_token_body,
         )
 
-        token = response.json().get("access_token")
-        if token is None:
-            raise ValueError("Failed to retrieve access token.")
-        self._token = token
+        if not response.ok:
+            raise Exception("Failed to retrieve access token.")
+
+        self._token = response.json().get("access_token")
+
+        with open(TOKEN_TMP_FILE, "w+") as f:
+            f.write(self._token)
 
     def _wait_for_retry(self, response: requests.Response) -> None:
         if self.retries == 5:
-            print(f"Failed to get response after {self.retries} retries")
             response.raise_for_status()
         self.retries += 1
         sleep(self.timeout * self.retries)
@@ -60,48 +87,80 @@ class KrameriusBaseClient:
         endpoint: str,
         params: Params | None = None,
         data: Any | None = None,
+        data_type: str | None = None,
     ):
         url = self.base_url + endpoint
+        headers = {} if data_type or self._token else None
+        if data_type:
+            headers["Content-Type"] = data_type
+        if self._token:
+            headers["Authorization"] = f"Bearer {self._token}"
 
-        response = requests.request(method, url, params=params, data=data)
+        response = requests.request(
+            method, url, headers=headers, params=params, data=data
+        )
 
-        if (
+        if response.status_code == 401 or (
             response.status_code == 403
             and "user 'not_logged'" in response.json().get("message", "")
         ):
             self._fetch_access_token()
-            return self._request(method, endpoint, params=params, data=data)
+            return self._request(method, endpoint, params, data, data_type)
 
-        if response.status_code != 200:
+        if not response.ok:
             self._wait_for_retry(response)
-            return self._request(method, endpoint, params=params, data=data)
+            return self._request(method, endpoint, params, data, data_type)
 
         self.curr_wait = 0
         self.retries = 0
         return response
 
     def admin_request_response(
-        self, method: str, endpoint: str, params: Params | None = None
+        self,
+        method: str,
+        endpoint: str,
+        params: Params | None = None,
+        data: Any | None = None,
+        data_type: str | None = None,
     ):
         with self.lock:
             return self._request(
-                method, f"/api/admin/v7.0/{endpoint}", params=params
+                method, f"/api/admin/v7.0/{endpoint}", params, data, data_type
             )
 
     def admin_request(
-        self, method: str, endpoint: str, params: Params | None = None
+        self,
+        method: str,
+        endpoint: str,
+        params: Params | None = None,
+        data: Any | None = None,
+        data_type: str | None = None,
     ):
-        return self.admin_request_response(method, endpoint, params).json()
+        return self.admin_request_response(
+            method, endpoint, params, data, data_type
+        ).json()
 
     def client_request_response(
-        self, method: str, endpoint: str, params: Params | None = None
+        self,
+        method: str,
+        endpoint: str,
+        params: Params | None = None,
+        data: Any | None = None,
+        data_type: str | None = None,
     ):
         with self.lock:
             return self._request(
-                method, f"/api/client/v7.0/{endpoint}", params=params
+                method, f"/api/client/v7.0/{endpoint}", params, data, data_type
             )
 
     def client_request(
-        self, method: str, endpoint: str, params: Params | None = None
+        self,
+        method: str,
+        endpoint: str,
+        params: Params | None = None,
+        data: Any | None = None,
+        data_type: str | None = None,
     ):
-        return self.client_request_response(method, endpoint, params).json()
+        return self.client_request_response(
+            method, endpoint, params, data, data_type
+        ).json()

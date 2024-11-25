@@ -25,6 +25,7 @@ from .datatypes import (
 )
 from .schemas import (
     KrameriusProcess,
+    KrameriusPlanProcess,
     ImportParams,
     ImportMetsParams,
     IndexParams,
@@ -87,6 +88,7 @@ __all__ = [
     "SdnntResponse",
     "SdnntGranularityRecord",
     "SdnntGranularityResponse",
+    "KrameriusPlanProcess",
 ]
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"

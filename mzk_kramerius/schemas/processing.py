@@ -58,12 +58,15 @@ ProcessParams = (
 )
 
 
+class KrameriusPlanProcess(BaseModel):
+    defid: ProcessType
+    params: ProcessParams | None
+
+
 class KrameriusProcess(BaseModel):
     uuid: str
     name: str
-    defid: ProcessType
     state: ProcessState
     planned: datetime
     started: datetime
     finished: datetime
-    params: ProcessParams
