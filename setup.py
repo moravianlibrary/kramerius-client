@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mzk_kramerius",
-    version="0.0.4",
+    version="0.0.5",
     description="Partial Kramerius client for Kramerius version v7.0.39",
     author="Robert Randiak",
     author_email="randiak@mzk.com",

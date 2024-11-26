@@ -26,8 +26,16 @@ class KrameriusDocument:
         return self.get_field_value(Field.OwnPidPath)
 
     @property
-    def licences(self):
-        return self.get_field_value(Field.Licences)
+    def licenses(self):
+        return self.get_field_value(Field.Licenses)
+
+    @property
+    def ancestralLicenses(self):
+        return self.get_field_value(Field.AncestralLicenses)
+
+    @property
+    def containsLicenses(self):
+        return self.get_field_value(Field.ContainsLicenses)
 
     @property
     def model(self):
@@ -109,7 +117,7 @@ class KrameriusDocument:
         return (
             f"PID: {self.pid}\n"
             f"Parent PID: {self.parentPid}\n"
-            f"Licences: {self.licences}\n"
+            f"Licenses: {self.licenses}\n"
             f"Model: {self.model}\n"
             f"Model path: {self.modelPath}\n"
             f"Barcode: {self.barcode}\n"

@@ -30,9 +30,9 @@ class Field(Enum):
     OwnPidPath = "own_pid_path"
 
     Accessibility = "accessibility"
-    Licences = "licenses"
-    ContainsLicences = "contains_licenses"
-    AncestralLicences = "licenses_of_ancestors"
+    Licenses = "licenses"
+    ContainsLicenses = "contains_licenses"
+    AncestralLicenses = "licenses_of_ancestors"
     Model = "model"
     ModelPath = "own_model_path"
     ParentModel = "own_parent.model"
