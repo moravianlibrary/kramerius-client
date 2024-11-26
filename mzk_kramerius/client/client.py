@@ -1,8 +1,9 @@
+from .base import KrameriusBaseClient
 from .items import ItemsClient
 from .processing import ProcessingClient
-from .search import SearchClient
-from .base import KrameriusBaseClient
 from .sdnnt import SdnntClient
+from .search import SearchClient
+from .statistics import StatisticsClient
 
 
 class KrameriusClient:
@@ -30,5 +31,6 @@ class KrameriusClient:
 
         self.Items = ItemsClient(self._base)
         self.Processing = ProcessingClient(self._base)
-        self.Search = SearchClient(self._base)
         self.Sdnnt = SdnntClient(self._base)
+        self.Search = SearchClient(self._base)
+        self.Statistics = StatisticsClient(self._base)

@@ -130,6 +130,9 @@ class SearchParams(BaseModel):
     fq: str | None = None
     sort: str | None = None
     cursorMark: str | None = None
+    facet: bool | None = None
+    facet_field: str | None = None
+    facet_min_count: int | None = None
 
     def with_pagination(self):
         self.sort = "pid ASC"
@@ -137,16 +140,29 @@ class SearchParams(BaseModel):
         return self
 
     def build(self):
-        return {
+
+        params = {
             "q": (
                 self.query.build()
                 if isinstance(self.query, SearchQuery)
                 else self.query
-            ),
-            "rows": self.rows,
-            "start": self.start,
-            "fl": ",".join([fl.value for fl in self.fl]) if self.fl else None,
-            "fq": self.fq,
-            "cursorMark": self.cursorMark,
-            "sort": self.sort,
+            )
         }
+        for value, key in [
+            (self.rows, "rows"),
+            (self.start, "start"),
+            (
+                ",".join([fl.value for fl in self.fl]) if self.fl else None,
+                "fl",
+            ),
+            (self.fq, "fq"),
+            (self.sort, "sort"),
+            (self.cursorMark, "cursorMark"),
+            ("true" if self.facet else None, "facet"),
+            (self.facet_field, "facet.field"),
+            (self.facet_min_count, "facet.mincount"),
+        ]:
+            if value is not None:
+                params[key] = value
+
+        return params

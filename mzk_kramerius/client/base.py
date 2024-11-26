@@ -99,10 +99,16 @@ class KrameriusBaseClient:
         response = requests.request(
             method, url, headers=headers, params=params, data=data
         )
+        print(response.json())
+        print(response.status_code)
+        print(self._token)
 
         if response.status_code == 401 or (
             response.status_code == 403
-            and "user 'not_logged'" in response.json().get("message", "")
+            and (
+                "user 'not_logged'" in response.json().get("message", "")
+                or "not allowed" == response.json().get("message", "")
+            )
         ):
             self._fetch_access_token()
             return self._request(method, endpoint, params, data, data_type)

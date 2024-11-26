@@ -2,6 +2,7 @@ import argparse
 import os
 from .client import KrameriusClient
 from .datatypes import validate_pid, SdnntSyncAction, ProcessType
+from .schemas import SearchParams
 
 
 def main():
@@ -23,9 +24,10 @@ def main():
             "GetSdnntChanges",
             "PlanSdnntSync",
             "GetProcess",
+            "SearchStatistics",
         ],
         help="Action to perform: GetDocument, GetNumFound, SearchFor,"
-        ", GetSdnntChanges, PlanSdnntSync or GetProcess",
+        ", GetSdnntChanges, PlanSdnntSync, GetProcess or SearchStatistics",
     )
     parser.add_argument("--pid", type=str, help="PID of a document")
     parser.add_argument(
@@ -110,6 +112,18 @@ def main():
         else:
             print("Please provide a process ID with --process-id.")
             exit(1)
+
+    elif args.action == "SearchStatistics":
+        if not args.query:
+            print("Please provide a query string with --query.")
+            exit(1)
+        print(
+            client.Statistics.search(
+                SearchParams(
+                    query=args.query, facet=True, facet_field="ip_address"
+                )
+            )
+        )
 
 
 if __name__ == "__main__":
