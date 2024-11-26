@@ -99,9 +99,6 @@ class KrameriusBaseClient:
         response = requests.request(
             method, url, headers=headers, params=params, data=data
         )
-        print(response.json())
-        print(response.status_code)
-        print(self._token)
 
         if response.status_code == 401 or (
             response.status_code == 403
