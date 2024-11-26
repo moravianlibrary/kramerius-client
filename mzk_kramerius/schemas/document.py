@@ -26,6 +26,10 @@ class KrameriusDocument:
         return self.get_field_value(Field.OwnPidPath)
 
     @property
+    def inCollections(self):
+        return self.get_field_value(Field.InCollections)
+
+    @property
     def licenses(self):
         return self.get_field_value(Field.Licenses)
 
