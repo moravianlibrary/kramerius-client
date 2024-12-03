@@ -1,5 +1,5 @@
 from typing import Dict, Optional
-from ..datatypes import Field
+from ..datatypes import Field, Model
 
 
 class KrameriusDocument:
@@ -42,8 +42,12 @@ class KrameriusDocument:
         return self.get_field_value(Field.ContainsLicenses)
 
     @property
-    def model(self):
-        return self.get_field_value(Field.Model)
+    def model(self) -> Model:
+        field_value = self.get_field_value(Field.Model)
+        try:
+            return Model(field_value)
+        except ValueError:
+            raise ValueError(f"Invalid model value: {field_value}")
 
     @property
     def modelPath(self):

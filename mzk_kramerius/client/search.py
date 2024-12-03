@@ -33,16 +33,14 @@ class SearchClient:
         )["response"]["numFound"]
 
     def search(self, query: SearchQuery | str, fl: List[Field] | None = None):
-        query = query.build() if isinstance(query, SearchParams) else query
+        query = query.build() if isinstance(query, SearchQuery) else query
 
         params = SearchParams(query=query, rows=PAGINATE_PAGE_SIZE, fl=fl)
 
         numFound = self.num_found(query)
 
         if numFound <= PAGINATE_PAGE_SIZE:
-            for document in self.client.search(params.build())["response"][
-                "docs"
-            ]:
+            for document in self._search(params.build())["response"]["docs"]:
                 yield KrameriusDocument(document)
             return
 
