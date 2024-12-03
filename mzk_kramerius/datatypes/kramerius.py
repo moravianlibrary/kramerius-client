@@ -81,6 +81,12 @@ class Model(Enum):
     InternalPart = "internalpart"
     Track = "track"
     Map = "map"
+    Graphic = "graphic"
+    SoundUnit = "soundunit"
+    SoundRecording = "soundrecording"
+    Archive = "archive"
+    Manuscript = "manuscript"
+    Picture = "picture"
 
 
 class Accessibility(Enum):

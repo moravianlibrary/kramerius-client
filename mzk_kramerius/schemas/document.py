@@ -27,19 +27,19 @@ class KrameriusDocument:
 
     @property
     def inCollections(self):
-        return self.get_field_value(Field.InCollections)
+        return self.get_field_value(Field.InCollections) or []
 
     @property
     def licenses(self):
-        return self.get_field_value(Field.Licenses)
+        return self.get_field_value(Field.Licenses) or []
 
     @property
     def ancestralLicenses(self):
-        return self.get_field_value(Field.AncestralLicenses)
+        return self.get_field_value(Field.AncestralLicenses) or []
 
     @property
     def containsLicenses(self):
-        return self.get_field_value(Field.ContainsLicenses)
+        return self.get_field_value(Field.ContainsLicenses) or []
 
     @property
     def model(self) -> Model:
