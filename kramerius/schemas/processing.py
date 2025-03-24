@@ -1,12 +1,14 @@
-from pydantic import BaseModel
 from datetime import datetime
-from ..datatypes import (
-    ProcessType,
-    ProcessState,
-    PathType,
+
+from pydantic import BaseModel
+
+from ..custom_types import (
     IndexationType,
     License,
+    PathType,
     Pid,
+    ProcessState,
+    ProcessType,
 )
 
 

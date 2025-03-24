@@ -1,7 +1,8 @@
 import argparse
 import os
+
 from .client import KrameriusClient
-from .datatypes import validate_pid, SdnntSyncAction, ProcessType
+from .custom_types import ProcessType, SdnntSyncAction, validate_pid
 from .schemas import SearchParams
 
 

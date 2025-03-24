@@ -1,9 +1,13 @@
+from solr_client import SolrConfig
+
 from .base import KrameriusBaseClient
 from .items import ItemsClient
 from .processing import ProcessingClient
 from .sdnnt import SdnntClient
 from .search import SearchClient
 from .statistics import StatisticsClient
+
+PAGINATE_PAGE_SIZE = 100
 
 
 class KrameriusClient:
@@ -32,5 +36,12 @@ class KrameriusClient:
         self.Items = ItemsClient(self._base)
         self.Processing = ProcessingClient(self._base)
         self.Sdnnt = SdnntClient(self._base)
-        self.Search = SearchClient(self._base)
+        self.Search = SearchClient(
+            SolrConfig(
+                host=host,
+                endpoint="api/client/v7.0/search",
+                page_size=PAGINATE_PAGE_SIZE,
+                timeout=timeout or 30,
+            )
+        )
         self.Statistics = StatisticsClient(self._base)

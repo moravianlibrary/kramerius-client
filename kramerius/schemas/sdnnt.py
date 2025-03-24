@@ -1,15 +1,17 @@
-from pydantic import BaseModel
-from ..datatypes import (
-    Pid,
-    SdnntSyncAction,
-    License,
-    Model,
-    SdnntState,
-    SdnntRecordType,
-)
+import textwrap
 from datetime import datetime
 from typing import List
-import textwrap
+
+from pydantic import BaseModel
+
+from ..custom_types import (
+    License,
+    Model,
+    Pid,
+    SdnntRecordType,
+    SdnntState,
+    SdnntSyncAction,
+)
 
 
 class SdnntBaseRecord(BaseModel):

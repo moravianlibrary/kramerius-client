@@ -1,5 +1,5 @@
-from ..datatypes import ProcessType
-from ..schemas import KrameriusProcess, KrameriusPlanProcess, ProcessParams
+from ..custom_types import ProcessType
+from ..schemas import KrameriusPlanProcess, KrameriusProcess, ProcessParams
 from .base import KrameriusBaseClient
 
 

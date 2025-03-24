@@ -1,10 +1,21 @@
-.PHONY: create-env rm-env publish
+PYTHON_BASE := python3.12
+PYTHON_VENV := .venv
+PYTHON := $(PYTHON_VENV)/bin/python
+PYTHON_PIP := $(PYTHON_VENV)/bin/pip
+PYTHON_DEPS := requirements.txt
 
-create-env:
-	python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+.PHONY: generate-env remove-env regenerate-env publish
 
-rm-env:
-	rm -r .venv/
+generate-env:
+	$(PYTHON_BASE) -m venv $(PYTHON_VENV)
+	$(PYTHON) -m ensurepip
+	$(PYTHON_PIP) install --upgrade pip
+	$(PYTHON_PIP) install -r $(PYTHON_DEPS)
+
+remove-env:
+	rm -rf $(PYTHON_VENV)
+
+regenerate-env: remove-env generate-env
 
 publish:
-	python setup.py sdist bdist_wheel && twine upload dist/*
+	$(PYTHON) setup.py sdist bdist_wheel && twine upload dist/*

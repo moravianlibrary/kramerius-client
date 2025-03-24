@@ -1,10 +1,11 @@
-import requests
-from time import sleep
-from ..datatypes import Method, Params
-from typing import Any
 import threading
 from os import path
+from time import sleep
+from typing import Any
 
+import requests
+
+from ..custom_types import Method, Params
 
 DEFAULT_TIMEOUT = 15
 DEFAULT_MAX_RETRIES = 5
