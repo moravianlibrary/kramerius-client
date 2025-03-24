@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Dict, Literal
 
 from pydantic import AfterValidator
-from solr_client import MappingEnum
+from solrify import MappingEnum
 from typing_extensions import Annotated
 
 Method = Literal["GET", "OPTIONS", "HEAD", "POST", "PUT", "PATCH", "DELETE"]

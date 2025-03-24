@@ -1,7 +1,7 @@
 from typing import List
 
 from pydantic import Field
-from solr_client import MappingEnum
+from solrify import MappingEnum
 
 from ..custom_types import Accessibility, License, Model
 

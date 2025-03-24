@@ -1,6 +1,6 @@
 from typing import List
 
-from solr_client import Q, SearchBase, SolrClient, SolrConfig
+from solrify import Q, SearchBase, SolrClient, SolrConfig
 
 from ..custom_types import KrameriusField, Pid
 from ..schemas import KrameriusDocument

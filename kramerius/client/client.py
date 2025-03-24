@@ -1,4 +1,4 @@
-from solr_client import SolrConfig
+from solrify import SolrConfig
 
 from .base import KrameriusBaseClient
 from .items import ItemsClient

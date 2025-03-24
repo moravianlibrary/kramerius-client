@@ -1,4 +1,4 @@
 lxml
 pydantic
 requests
-/home/robert/repositories/work/python-clients/solr-client
+/home/robert/repositories/work/python-clients/solrify
