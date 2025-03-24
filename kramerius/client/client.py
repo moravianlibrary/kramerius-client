@@ -40,6 +40,7 @@ class KrameriusClient:
             SolrConfig(
                 host=host,
                 endpoint="api/client/v7.0/search",
+                id_field="pid",
                 page_size=PAGINATE_PAGE_SIZE,
                 timeout=timeout or 30,
             )
