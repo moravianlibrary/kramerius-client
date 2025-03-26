@@ -1,3 +1,4 @@
+from .config import KrameriusConfig
 from .document import KrameriusDocument
 from .processing import (
     AddLicenseParams,
@@ -26,6 +27,7 @@ __all__ = [
     "ImportMetsParams",
     "ImportParams",
     "IndexParams",
+    "KrameriusConfig",
     "KrameriusDocument",
     "KrameriusPlanProcess",
     "KrameriusProcess",

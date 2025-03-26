@@ -15,8 +15,9 @@ authors = [
 requires-python = ">=3.12"
 dynamic = ["dependencies", "readme"]
 
-[tool.setuptools]
-packages = ["kramerius"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["kramerius*"]
 
 [tool.setuptools.dynamic]
 dependencies = {file = "requirements_install.txt"}

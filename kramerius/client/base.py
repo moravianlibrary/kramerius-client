@@ -6,55 +6,54 @@ from typing import Any
 import requests
 
 from ..custom_types import Method, Params
+from ..schemas import KrameriusConfig
 
-DEFAULT_TIMEOUT = 15
-DEFAULT_MAX_RETRIES = 5
+DEFAULT_TIMEOUT = 30
+
 TOKEN_TMP_FILE = "/tmp/kramerius_token"
-TOKEN_CALL = "{KEYCLOAK_HOST}/realms/kramerius/protocol/openid-connect/token"
+KEYCLOAK_TOKEN_ENDPOINT = "/realms/kramerius/protocol/openid-connect/token"
+
+DEFAULT_MAX_RETRIES = 5
+DEFAULT_RETRY_TIMEOUT = 15
 
 
 class KrameriusBaseClient:
     def __init__(
         self,
-        host: str,
-        keycloak_host: str | None = None,
-        client_id: str | None = None,
-        client_secret: str | None = None,
-        username: str | None = None,
-        password: str | None = None,
-        timeout: int | None = None,
-        max_retries: int | None = None,
+        config: KrameriusConfig,
     ):
-        self.base_url = host.strip("/")
+        self._host = config.host.strip("/")
 
         self._keycloak_host = None
         self._get_token_body = None
         if (
-            keycloak_host
-            and client_id
-            and client_secret
-            and username
-            and password
+            config.keycloak_host
+            and config.client_id
+            and config.client_secret
+            and config.username
+            and config.password
         ):
-            self._keycloak_host = keycloak_host
+            self._keycloak_host = config.keycloak_host.strip("/")
             self._get_token_body = {
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "username": username,
-                "password": password,
+                "client_id": config.client_id,
+                "client_secret": config.client_secret,
+                "username": config.username,
+                "password": config.password,
                 "grant_type": "password",
             }
+
+        self._timeout = config.timeout or DEFAULT_TIMEOUT
 
         self._token = None
         if path.exists(TOKEN_TMP_FILE):
             with open(TOKEN_TMP_FILE, "r") as f:
                 self._token = f.read().strip()
 
-        self.lock = threading.Lock()
-        self.timeout = timeout or DEFAULT_TIMEOUT
-        self.max_retries = max_retries or DEFAULT_MAX_RETRIES
+        self._lock = threading.Lock()
 
-        self.retries = 0
+        self._max_retries = config.max_retries or DEFAULT_MAX_RETRIES
+        self._retry_timeout = config.timeout or DEFAULT_RETRY_TIMEOUT
+        self._retries = 0
 
     def _fetch_access_token(self):
         if self._get_token_body is None:
@@ -64,8 +63,9 @@ class KrameriusBaseClient:
             )
 
         response = requests.post(
-            TOKEN_CALL.format(KEYCLOAK_HOST=self._keycloak_host),
+            url=f"{self._keycloak_host}/{KEYCLOAK_TOKEN_ENDPOINT}",
             data=self._get_token_body,
+            timeout=self._timeout,
         )
 
         if not response.ok:
@@ -77,10 +77,10 @@ class KrameriusBaseClient:
             f.write(self._token)
 
     def _wait_for_retry(self, response: requests.Response) -> None:
-        if self.retries == 5:
+        if self._retries == 5:
             response.raise_for_status()
-        self.retries += 1
-        sleep(self.timeout * self.retries)
+        self._retries += 1
+        sleep(self._retry_timeout * self._retries)
 
     def _request(
         self,
@@ -90,7 +90,6 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
-        url = self.base_url + endpoint
         headers = {} if data_type or self._token else None
         if data_type:
             headers["Content-Type"] = data_type
@@ -98,7 +97,11 @@ class KrameriusBaseClient:
             headers["Authorization"] = f"Bearer {self._token}"
 
         response = requests.request(
-            method, url, headers=headers, params=params, data=data
+            method=method,
+            url=f"{self._host}/{endpoint}",
+            headers=headers,
+            params=params,
+            data=data,
         )
 
         if response.status_code == 401 or (
@@ -115,8 +118,7 @@ class KrameriusBaseClient:
             self._wait_for_retry(response)
             return self._request(method, endpoint, params, data, data_type)
 
-        self.curr_wait = 0
-        self.retries = 0
+        self._retries = 0
         return response
 
     def admin_request_response(
