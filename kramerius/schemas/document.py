@@ -1,12 +1,11 @@
 from typing import List
 
-from pydantic import Field
-from solrify import MappingEnum
+from pydantic import BaseModel, Field
 
 from ..custom_types import Accessibility, License, Model
 
 
-class KrameriusDocument(MappingEnum):
+class KrameriusDocument(BaseModel):
     pid: str | None = None
     parent_pid: str | None = Field(None, alias="own_parent.pid")
     root_pid: str | None = Field(None, alias="root.pid")
@@ -16,7 +15,7 @@ class KrameriusDocument(MappingEnum):
     parent_model: Model | None = Field(None, alias="own_parent.model")
     root_model: Model | None = Field(None, alias="root.model")
     model_path: str | None = Field(None, alias="own_model_path")
-    level: str | None = None
+    level: int | None = None
 
     in_collections: str | None = None
     direct_in_collections: str | None = Field(
@@ -33,7 +32,7 @@ class KrameriusDocument(MappingEnum):
     isbn: List[str] | None = Field(None, alias="id_isbn")
     issn: List[str] | None = Field(None, alias="id_issn")
     signature: List[str] | None = Field(None, alias="shelf_locators")
-    physical_location: str | None = Field(
+    physical_location: List[str] | None = Field(
         None, alias="physical_locations.facet"
     )
 
@@ -53,13 +52,13 @@ class KrameriusDocument(MappingEnum):
     part_number_sort: int | None = Field(None, alias="part.number.sort")
     part_number_string: str | None = Field(None, alias="part.number.str")
 
-    publishers_facet: str | None = Field(None, alias="publishers.facet")
-    publication_places_facet: str | None = Field(
+    publishers_facet: List[str] | None = Field(None, alias="publishers.facet")
+    publication_places_facet: List[str] | None = Field(
         None, alias="publication_places.facet"
     )
-    languages_facet: str | None = Field(None, alias="languages.facet")
+    languages_facet: List[str] | None = Field(None, alias="languages.facet")
 
     page_count: int | None = Field(None, alias="count_page")
 
-    keywords_facet: str | None = Field(None, alias="keywords.facet")
+    keywords_facet: List[str] | None = Field(None, alias="keywords.facet")
     image_full_mime_type: str | None = Field(None, alias="ds.img_full.mime")

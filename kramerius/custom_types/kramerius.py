@@ -59,6 +59,7 @@ class KrameriusField(MappingEnum):
 
     Title = ("Title", "title.search")
     TitleSort = ("TitleSort", "title.sort")
+    Titles = ("Titles", "titles.search")
     PartNumberSort = ("PartNumberSort", "part.number.sort")
     PartNumberString = ("PartNumberString", "part.number.str")
 
