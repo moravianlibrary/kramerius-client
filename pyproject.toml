@@ -13,12 +13,17 @@ authors = [
     {name = "Robert Randiak", email = "randiak@protonmail.com"}
 ]
 requires-python = ">=3.12"
-dynamic = ["dependencies", "readme"]
+dependencies = [
+    "lxml",
+    "pydantic",
+    "requests",
+    "solrify @ git+ssh://git@github.com/moravianlibrary/solrify.git"
+]
+dynamic = ["readme"]
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["kramerius*"]
 
 [tool.setuptools.dynamic]
-dependencies = {file = "requirements.txt"}
 readme = {file = "README.md"}
