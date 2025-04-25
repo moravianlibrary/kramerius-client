@@ -20,5 +20,5 @@ where = ["."]
 include = ["kramerius*"]
 
 [tool.setuptools.dynamic]
-dependencies = {file = "requirements_install.txt"}
+dependencies = {file = "requirements.txt"}
 readme = {file = "README.md"}
