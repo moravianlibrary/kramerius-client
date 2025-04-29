@@ -26,54 +26,52 @@ Pid = Annotated[
 
 
 class KrameriusField(MappingEnum):
-    Pid = ("Pid", "pid")
-    ParentPid = ("ParentPid", "own_parent.pid")
-    RootPid = ("RootPid", "root.pid")
-    OwnPidPath = ("OwnPidPath", "own_pid_path")
+    Pid = "pid"
+    ParentPid = "own_parent.pid"
+    RootPid = "root.pid"
+    OwnPidPath = "own_pid_path"
 
-    Model = ("Model", "model")
-    ParentModel = ("ParentModel", "own_parent.model")
-    RootModel = ("RootModel", "root.model")
-    ModelPath = ("ModelPath", "own_model_path")
-    Level = ("Level", "level")
+    Model = "model"
+    ParentModel = "own_parent.model"
+    RootModel = "root.model"
+    ModelPath = "own_model_path"
+    Level = "level"
 
-    InCollections = ("InCollections", "in_collections")
-    DirectInCollections = ("DirectInCollections", "in_collections.direct")
-    Licenses = ("Licenses", "licenses")
-    ContainsLicenses = ("ContainsLicenses", "contains_licenses")
-    AncestralLicenses = ("AncestralLicenses", "licenses_of_ancestors")
-    Accessibility = ("Accessibility", "accessibility")
+    InCollections = "in_collections"
+    DirectInCollections = "in_collections.direct"
+    Licenses = "licenses"
+    ContainsLicenses = "contains_licenses"
+    AncestralLicenses = "licenses_of_ancestors"
+    Accessibility = "accessibility"
 
-    ControlNumber = ("ControlNumber", "id_sysno")
-    Barcode = ("Barcode", "id_barcode")
-    Nbn = ("Nbn", "id_ccnb")
-    Isbn = ("Isbn", "id_isbn")
-    Issn = ("Issn", "id_issn")
-    Signature = ("Signature", "shelf_locators")
-    PhysicalLocation = ("PhysicalLocation", "physical_locations.facet")
+    ControlNumber = "id_sysno"
+    Barcode = "id_barcode"
+    Nbn = "id_ccnb"
+    Isbn = "id_isbn"
+    Issn = "id_issn"
+    Signature = "shelf_locators"
+    PhysicalLocation = "physical_locations.facet"
 
-    DateMin = ("DateMin", "date.min")
-    DateMax = ("DateMax", "date.max")
-    DateRangeStartYear = ("DateRangeStartYear", "date_range_start.year")
-    DateRangeEndYear = ("DateRangeEndYear", "date_range_end.year")
+    DateMin = "date.min"
+    DateMax = "date.max"
+    DateRangeStartYear = "date_range_start.year"
+    DateRangeEndYear = "date_range_end.year"
 
-    Title = ("Title", "title.search")
-    TitleSort = ("TitleSort", "title.sort")
-    Titles = ("Titles", "titles.search")
-    PartNumberSort = ("PartNumberSort", "part.number.sort")
-    PartNumberString = ("PartNumberString", "part.number.str")
+    Title = "title.search"
+    TitleSort = "title.sort"
+    Titles = "titles.search"
+    PartNumberSort = "part.number.sort"
+    PartNumberString = "part.number.str"
 
-    PublishersFacet = ("PublishersFacet", "publishers.facet")
-    PublicationPlacesFacet = (
-        "PublicationPlacesFacet",
-        "publication_places.facet",
-    )
-    LanguagesFacet = ("LanguagesFacet", "languages.facet")
+    PublishersFacet = "publishers.facet"
+    PublicationPlacesFacet = "publication_places.facet"
+    
+    LanguagesFacet = "languages.facet"
 
-    PageCount = ("PageCount", "count_page")
+    PageCount = "count_page"
 
-    KeywordsFacet = ("KeywordsFacet", "keywords.facet")
-    ImageFullMimeType = ("ImageFullMimeType", "ds.img_full.mime")
+    KeywordsFacet = "keywords.facet"
+    ImageFullMimeType = "ds.img_full.mime"
 
 
 class Model(Enum):
