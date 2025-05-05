@@ -1,4 +1,4 @@
 lxml
 pydantic
 requests
-git+ssh://git@github.com/moravianlibrary/solrify.git
+git+https://github.com/moravianlibrary/solrify.git
