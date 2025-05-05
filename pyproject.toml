@@ -17,7 +17,7 @@ dependencies = [
     "lxml",
     "pydantic",
     "requests",
-    "solrify @ git+ssh://git@github.com/moravianlibrary/solrify.git"
+    "solrify @ git+https://github.com/moravianlibrary/solrify.git"
 ]
 dynamic = ["readme"]
 
