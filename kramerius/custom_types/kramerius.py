@@ -46,6 +46,7 @@ class KrameriusField(MappingEnum):
 
     ControlNumber = "id_sysno"
     Barcode = "id_barcode"
+    SystemNumber = "id_sysno"
     Nbn = "id_ccnb"
     Isbn = "id_isbn"
     Issn = "id_issn"
@@ -65,7 +66,7 @@ class KrameriusField(MappingEnum):
 
     PublishersFacet = "publishers.facet"
     PublicationPlacesFacet = "publication_places.facet"
-    
+
     LanguagesFacet = "languages.facet"
 
     PageCount = "count_page"
