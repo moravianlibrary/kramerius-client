@@ -26,7 +26,7 @@ class KrameriusDocument(BaseModel):
     licenses_of_ancestors: List[License] | None = None
     accessibility: Accessibility | None = None
 
-    control_number: str | None = Field(None, alias="id_sysno")
+    system_number: List[str] | None = Field(None, alias="id_sysno")
     barcode: List[str] | None = Field(None, alias="id_barcode")
     nbn: List[str] | None = Field(None, alias="id_ccnb")
     isbn: List[str] | None = Field(None, alias="id_isbn")
