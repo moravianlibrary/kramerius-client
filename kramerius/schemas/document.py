@@ -17,8 +17,8 @@ class KrameriusDocument(BaseModel):
     model_path: str | None = Field(None, alias="own_model_path")
     level: int | None = None
 
-    in_collections: str | None = None
-    direct_in_collections: str | None = Field(
+    in_collections: List[str] | None = None
+    direct_in_collections: List[str] | None = Field(
         None, alias="in_collections.direct"
     )
     licenses: List[License] | None = None
