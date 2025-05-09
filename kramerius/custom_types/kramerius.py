@@ -44,7 +44,6 @@ class KrameriusField(MappingEnum):
     AncestralLicenses = "licenses_of_ancestors"
     Accessibility = "accessibility"
 
-    ControlNumber = "id_sysno"
     Barcode = "id_barcode"
     SystemNumber = "id_sysno"
     Nbn = "id_ccnb"
