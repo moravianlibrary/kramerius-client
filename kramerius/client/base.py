@@ -129,7 +129,7 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
-        with self.lock:
+        with self._lock:
             return self._request(
                 method, f"/api/admin/v7.0/{endpoint}", params, data, data_type
             )
@@ -154,7 +154,7 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
-        with self.lock:
+        with self._lock:
             return self._request(
                 method, f"/api/client/v7.0/{endpoint}", params, data, data_type
             )
