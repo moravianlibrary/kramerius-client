@@ -131,7 +131,7 @@ class KrameriusBaseClient:
     ):
         with self._lock:
             return self._request(
-                method, f"/api/admin/v7.0/{endpoint}", params, data, data_type
+                method, f"api/admin/v7.0/{endpoint}", params, data, data_type
             )
 
     def admin_request(
@@ -156,7 +156,7 @@ class KrameriusBaseClient:
     ):
         with self._lock:
             return self._request(
-                method, f"/api/client/v7.0/{endpoint}", params, data, data_type
+                method, f"api/client/v7.0/{endpoint}", params, data, data_type
             )
 
     def client_request(

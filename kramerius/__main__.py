@@ -3,7 +3,7 @@ import os
 
 from .client import KrameriusClient
 from .custom_types import ProcessType, SdnntSyncAction, validate_pid
-from .schemas import SearchParams
+from .schemas import KrameriusConfig, SearchParams
 
 
 def main():
@@ -43,12 +43,14 @@ def main():
     args = parser.parse_args()
 
     client = KrameriusClient(
-        args.host or os.getenv("K7_HOST"),
-        args.keycloak_host or os.getenv("K7_KEYCLOAK_HOST"),
-        args.client_id or os.getenv("K7_CLIENT_ID"),
-        args.client_secret or os.getenv("K7_CLIENT_SECRET"),
-        args.username or os.getenv("K7_USERNAME"),
-        args.password or os.getenv("K7_PASSWORD"),
+        KrameriusConfig(
+            host=args.host or os.getenv("K7_HOST"),
+            keycloak_host=args.keycloak_host or os.getenv("K7_KEYCLOAK_HOST"),
+            client_id=args.client_id or os.getenv("K7_CLIENT_ID"),
+            client_secret=args.client_secret or os.getenv("K7_CLIENT_SECRET"),
+            username=args.username or os.getenv("K7_USERNAME"),
+            password=args.password or os.getenv("K7_PASSWORD"),
+        )
     )
 
     if args.action == "GetDocument":

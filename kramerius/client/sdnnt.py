@@ -1,11 +1,11 @@
-from .base import KrameriusBaseClient
-from ..schemas import (
-    SdnntResponse,
-    SdnntGranularityResponse,
-    SdnntGranularityRecord,
-)
 from datetime import datetime, timezone
 
+from ..schemas import (
+    SdnntGranularityRecord,
+    SdnntGranularityResponse,
+    SdnntResponse,
+)
+from .base import KrameriusBaseClient
 
 PAGE_SIZE = 100
 
@@ -14,13 +14,19 @@ class SdnntClient:
     def __init__(self, client: KrameriusBaseClient):
         self._client = client
 
-    def get_sdnnt_timestamp(self, tzinfo=timezone.utc):
-        return datetime.strptime(
+    def get_sdnnt_timestamp(self, tzinfo=timezone.utc) -> datetime | None:
+        timestamp = (
             self._client.admin_request("GET", "sdnnt/sync/timestamp")
             .get("docs")[0]
-            .get("fetched"),
-            "%Y-%m-%dT%H:%M:%S.%fZ",
-        ).replace(tzinfo=tzinfo)
+            .get("fetched")
+        )
+        return (
+            datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
+                tzinfo=tzinfo
+            )
+            if timestamp
+            else None
+        )
 
     def get_sdnnt_changes(self, page: int, rows: int) -> SdnntResponse:
         return SdnntResponse.model_validate(
