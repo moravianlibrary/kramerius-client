@@ -11,4 +11,4 @@ class SearchClient(SolrClient[KrameriusDocument]):
         super().__init__(config)
 
     def get_document(self, pid: Pid) -> KrameriusDocument | None:
-        return super().get(F(KrameriusField.Pid, pid))
+        return super().get_one_or_none(F(KrameriusField.Pid, pid))
