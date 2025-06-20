@@ -1,4 +1,5 @@
 lxml
 pydantic
 requests
-git+https://github.com/moravianlibrary/solrify.git
+solrify @ git+https://github.com/moravianlibrary/solrify.git
+typer

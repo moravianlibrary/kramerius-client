@@ -1,6 +1,6 @@
 import re
+from itertools import islice
 from typing import Optional
-
 
 VOLUME_YEAR = r"^\s*(\d{4})\s*$"
 VOLUME_RANGE = r"^\s*(\d{4})-(\d{4})?\s*$"
@@ -33,3 +33,13 @@ def range_end_year(year: Optional[str]) -> Optional[int]:
     match = re.match(VOLUME_MULTIYEAR, year)
     if match:
         return max(int(group) for group in match.groups())
+
+
+def chunked(iterable, size):
+    """Yield successive chunks (as lists) from iterable."""
+    it = iter(iterable)
+    while True:
+        chunk = list(islice(it, size))
+        if not chunk:
+            break
+        yield chunk

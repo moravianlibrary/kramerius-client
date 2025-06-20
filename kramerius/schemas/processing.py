@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from ..custom_types import (
     IndexationType,
@@ -29,14 +30,23 @@ class ImportMetsParams(ImportParams):
     useIIPServer: bool
 
 
-class IndexParams(BaseModel):
+class PidOrPidlistParams(BaseModel):
+    pid: Optional[Pid] = None
+    pidlist: Optional[List[Pid]] = None
+
+    @model_validator(mode="after")
+    def at_least_one_required(cls, model):
+        if model.pid is None and not model.pidlist:
+            raise ValueError("Either 'pid' or 'pidlist' must be set.")
+        return model
+
+
+class IndexParams(PidOrPidlistParams):
     type: IndexationType
-    pid: Pid
     ignoreInconsistentObjects: bool
 
 
-class AddLicenseParams(BaseModel):
-    pid: Pid
+class AddLicenseParams(PidOrPidlistParams):
     license: License
 
 
