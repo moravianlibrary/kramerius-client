@@ -104,6 +104,7 @@ class Accessibility(Enum):
 
 class MimeType(Enum):
     Pdf = "application/pdf"
+    Jpeg = "image/jpeg"
 
 
 class KrameriusException(Exception):
