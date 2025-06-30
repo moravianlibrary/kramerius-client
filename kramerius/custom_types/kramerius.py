@@ -52,6 +52,7 @@ class KrameriusField(MappingEnum):
     Signature = "shelf_locators"
     PhysicalLocation = "physical_locations.facet"
 
+    DateStr = "date.str"
     DateMin = "date.min"
     DateMax = "date.max"
     DateRangeStartYear = "date_range_start.year"
