@@ -5,6 +5,8 @@ from typing import List, Optional
 
 import typer
 
+from kramerius.custom_types.processing import ProcessState
+
 from .client import KrameriusClient
 from .custom_types import ProcessType, SdnntSyncAction, validate_pid
 from .custom_types.kramerius import Pid
@@ -16,6 +18,7 @@ app = typer.Typer(help="Kramerius CLI")
 
 MAX_ACTIVE_PROCESSES = 2
 MAX_LICENSE_CHANGES_PER_PROCESS = 3000
+MAX_RETRIES = 5
 SUSPEND_TIME = 30
 
 
@@ -24,7 +27,7 @@ class Action(Enum):
     GetNumFound = "GetNumFound"
     SearchFor = "SearchFor"
     GetSdnntChanges = "GetSdnntChanges"
-    PlanSdnntSync = "PlanSdnntSync"
+    RunSdnntSync = "RunSdnntSync"
     GetProcess = "GetProcess"
     SearchStatistics = "SearchStatistics"
     AddLicense = "AddLicense"
@@ -128,13 +131,35 @@ def main(
             else:
                 print(f"No sync actions in record: {record}")
 
-    elif action == Action.PlanSdnntSync:
-        client.Processing.plan(ProcessType.SdnntSync)
+    elif action == Action.RunSdnntSync:
+        plan_response = client.Processing.plan(ProcessType.SdnntSync)
+        uuid = plan_response.uuid
+        state = plan_response.state
+        fail_count = 0
+
+        while state != ProcessState.Finished:
+            sleep(SUSPEND_TIME)
+            state = client.Processing.get(uuid=uuid).process.state
+
+            print(f"Process with UUID '{uuid}' is in state: {state.value}")
+            if state == ProcessState.Failed:
+                fail_count += 1
+                print(
+                    f"Process with UUID '{uuid}' failed ({fail_count}/{MAX_RETRIES})."
+                )
+
+                if fail_count >= MAX_RETRIES:
+                    print("Process failed too many times. Aborting.")
+                    exit(1)
+
+                plan_response = client.Processing.plan(ProcessType.SdnntSync)
+                uuid = plan_response.uuid
+                state = plan_response.state
 
     elif action == Action.GetProcess:
         if process_id:
             process = client.Processing.get(process_id)
-            print(process)
+            print(process.model_dump_json(exclude_none=True, indent=2))
         else:
             print("Please provide a process ID with --process-id.")
             exit(1)

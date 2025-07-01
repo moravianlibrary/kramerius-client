@@ -75,10 +75,38 @@ class KrameriusPlanProcess(BaseModel):
     params: ProcessParams | None
 
 
-class KrameriusProcess(BaseModel):
+class KrameriusProcessPlanResponse(BaseModel):
     uuid: str
     name: str
     state: ProcessState
-    planned: datetime
-    started: datetime
-    finished: datetime
+
+
+class KrameriusProcessBatch(BaseModel):
+    id: str
+    owner_id: str
+    owner_name: str
+
+    state: ProcessState
+    planned: datetime | None = None
+    started: datetime | None = None
+    finished: datetime | None = None
+
+    token: str
+
+
+class KrameriusProcess(BaseModel):
+    id: str
+    uuid: str
+
+    defid: ProcessType
+    name: str
+
+    state: ProcessState
+    planned: datetime | None = None
+    started: datetime | None = None
+    finished: datetime | None = None
+
+
+class KrameriusSingleProcess(BaseModel):
+    batch: KrameriusProcessBatch
+    process: KrameriusProcess

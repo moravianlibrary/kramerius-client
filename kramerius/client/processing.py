@@ -1,6 +1,11 @@
 from ..custom_types import ProcessType
 from ..custom_types.processing import ProcessState
-from ..schemas import KrameriusPlanProcess, KrameriusProcess, ProcessParams
+from ..schemas import (
+    KrameriusPlanProcess,
+    KrameriusProcessPlanResponse,
+    KrameriusSingleProcess,
+    ProcessParams,
+)
 from .base import KrameriusBaseClient
 
 
@@ -10,36 +15,34 @@ class ProcessingClient:
 
     def plan(
         self, type: ProcessType, params: ProcessParams | None = None
-    ) -> KrameriusProcess:
+    ) -> KrameriusProcessPlanResponse:
         process = KrameriusPlanProcess(defid=type, params=params)
-        return self._client.admin_request(
-            "POST",
-            "processes",
-            data=process.model_dump_json(exclude_none=True),
-            data_type="application/json",
+        return KrameriusProcessPlanResponse.model_validate(
+            self._client.admin_request(
+                "POST",
+                "processes",
+                data=process.model_dump_json(exclude_none=True),
+                data_type="application/json",
+            )
         )
-        # return KrameriusProcess.model_validate(
-        #     self._client.admin_request(
-        #         "POST",
-        #         "processes",
-        #         data=process.model_dump_json(exclude_none=True),
-        #         data_type="application/json",
-        #     )
-        # )
 
     def get(
         self, id: str | None = None, uuid: str | None = None
-    ) -> KrameriusProcess:
+    ) -> KrameriusSingleProcess:
         if id is None and uuid is None:
             raise ValueError("Id or uuid of the process must be provided")
         if id:
-            return self._client.admin_request(
-                "GET",
-                f"processes/by_process_id/{id}",
+            return KrameriusSingleProcess.model_validate(
+                self._client.admin_request(
+                    "GET",
+                    f"processes/by_process_id/{id}",
+                )
             )
-        return self._client.admin_request(
-            "GET",
-            f"processes/by_process_uuid/{uuid}",
+        return KrameriusSingleProcess.model_validate(
+            self._client.admin_request(
+                "GET",
+                f"processes/by_process_uuid/{uuid}",
+            )
         )
 
     def get_num_active(self) -> int:
