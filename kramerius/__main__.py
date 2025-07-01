@@ -145,7 +145,8 @@ def main(
             if state == ProcessState.Failed:
                 fail_count += 1
                 print(
-                    f"Process with UUID '{uuid}' failed ({fail_count}/{MAX_RETRIES})."
+                    f"Process with UUID '{uuid}' failed "
+                    f"({fail_count}/{MAX_RETRIES})."
                 )
 
                 if fail_count >= MAX_RETRIES:
