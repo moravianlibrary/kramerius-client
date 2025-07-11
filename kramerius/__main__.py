@@ -32,6 +32,7 @@ class Action(Enum):
     SearchStatistics = "SearchStatistics"
     AddLicense = "AddLicense"
     RemoveLicense = "RemoveLicense"
+    GetImage = "GetImage"
 
 
 @app.command()
@@ -66,6 +67,9 @@ def main(
     ),
     license: Optional[str] = typer.Option(
         None, help="License to add or remove"
+    ),
+    target_dir: Optional[str] = typer.Option(
+        None, help="Target directory for saving"
     ),
 ):
     config = KrameriusConfig(
@@ -174,6 +178,35 @@ def main(
                 SearchParams(query=query, facet=True, facet_field="ip_address")
             )
         )
+
+    elif action == Action.GetImage:
+        if not target_dir:
+            print("Please provide a target directory with --target-dir.")
+            exit(1)
+
+        pids = [pid] if pid else []
+        if pids_file:
+            with open(pids_file, "r") as file:
+                pids.extend(line.strip() for line in file if line.strip())
+        if not pids:
+            print("Please provide either --pid or --pids-file.")
+            exit(1)
+
+        for pid in pids:
+            pid = validate_pid(pid)
+            try:
+                image_data = client.Items.get_image(pid)
+                if target_dir:
+                    os.makedirs(target_dir, exist_ok=True)
+                    uuid = pid.replace("uuid:", "")
+                    image_path = os.path.join(target_dir, f"{uuid}.jpg")
+                    with open(image_path, "wb") as img_file:
+                        img_file.write(image_data)
+                    print(f"Image for PID '{pid}' saved to '{image_path}'.")
+                else:
+                    print(f"Image for PID '{pid}' retrieved successfully.")
+            except Exception as e:
+                print(f"Failed to retrieve image for PID '{pid}': {e}")
 
     elif action in [Action.AddLicense, Action.RemoveLicense]:
         process_type = (
