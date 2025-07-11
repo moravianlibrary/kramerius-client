@@ -13,3 +13,10 @@ class ItemsClient:
                 f"items/{pid}/metadata/mods",
             ).content
         )
+
+    def get_image(self, pid: str) -> bytes:
+        return self._client.client_request_response(
+            "GET",
+            f"items/{pid}/image",
+            data_type="image/jpeg",
+        ).content
