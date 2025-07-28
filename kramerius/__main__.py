@@ -5,11 +5,11 @@ from typing import List, Optional
 
 import typer
 
-from kramerius.custom_types.processing import ProcessState
+from kramerius.definitions.processing import ProcessState
 
 from .client import KrameriusClient
-from .custom_types import ProcessType, SdnntSyncAction, validate_pid
-from .custom_types.kramerius import Pid
+from .definitions import ProcessType, SdnntSyncAction, validate_pid
+from .definitions.kramerius import Pid
 from .parsers import chunked
 from .schemas import AddLicenseParams, KrameriusConfig, SearchParams
 

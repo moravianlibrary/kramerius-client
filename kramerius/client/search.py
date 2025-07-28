@@ -1,6 +1,6 @@
 from solrify import F, SolrClient, SolrConfig
 
-from ..custom_types import KrameriusField, Pid
+from ..definitions import KrameriusField, Pid
 from ..schemas import KrameriusDocument
 
 

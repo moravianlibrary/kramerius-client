@@ -1,5 +1,5 @@
 from .client import KrameriusClient
-from .custom_types import (
+from .definitions import (
     Accessibility,
     IndexationType,
     KrameriusField,

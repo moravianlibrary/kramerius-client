@@ -1,5 +1,5 @@
-from ..custom_types import ProcessType
-from ..custom_types.processing import ProcessState
+from ..definitions import ProcessType
+from ..definitions.processing import ProcessState
 from ..schemas import (
     KrameriusPlanProcess,
     KrameriusProcessPlanResponse,

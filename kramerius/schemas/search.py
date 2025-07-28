@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from ..custom_types import KrameriusField
+from ..definitions import KrameriusField
 
 
 # TODO: move to Solr library

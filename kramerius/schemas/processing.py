@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, model_validator
 
-from ..custom_types import (
+from ..definitions import (
     IndexationType,
     License,
     PathType,

@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, Field
 
-from ..custom_types import Accessibility, License, Model
+from ..definitions import Accessibility, License, Model
 
 
 class KrameriusDocument(BaseModel):

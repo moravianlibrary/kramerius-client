@@ -5,7 +5,7 @@ from typing import Any
 
 import requests
 
-from ..custom_types import Method, Params
+from ..definitions import Method, Params
 from ..schemas import KrameriusConfig
 
 DEFAULT_TIMEOUT = 30
@@ -18,6 +18,50 @@ DEFAULT_RETRY_TIMEOUT = 15
 
 
 class KrameriusBaseClient:
+    """
+    Base client for interacting with the Kramerius API.
+
+    Handles token-based authentication via Keycloak, request retries,
+    and basic request routing for both admin and client API endpoints.
+
+    All requests are synchronized using a thread lock (`threading.Lock`)
+    to ensure that only one request is in progress at a time. This avoids:
+        - race conditions when accessing or refreshing tokens,
+        - overlapping retry logic from multiple threads,
+        - inconsistent side effects when issuing write operations.
+
+    This makes the client safe for use in multi-threaded environments
+    where requests may be sent concurrently.
+
+    Parameters
+    ----------
+    config : KrameriusConfig
+        Configuration object containing API host, credentials,
+        and optional timeout and retry settings.
+
+    Methods
+    -------
+    admin_request_response(
+        method, endpoint, params=None, data=None, data_type=None
+    )
+        Sends an authorized request to the admin API
+        and returns the raw response.
+
+    admin_request(method, endpoint, params=None, data=None, data_type=None)
+        Sends an authorized request to the admin API
+        and returns the parsed JSON response.
+
+    client_request_response(
+        method, endpoint, params=None, data=None, data_type=None
+    )
+        Sends an authorized request to the client API
+        and returns the raw response.
+
+    client_request(method, endpoint, params=None, data=None, data_type=None)
+        Sends an authorized request to the client API
+        and returns the parsed JSON response.
+    """
+
     def __init__(
         self,
         config: KrameriusConfig,
@@ -56,6 +100,17 @@ class KrameriusBaseClient:
         self._retries = 0
 
     def _fetch_access_token(self):
+        """
+        Fetches a new access token from the Keycloak server
+        and writes it to a temporary file.
+
+        Raises
+        ------
+        Exception
+            If authorization parameters are not configured
+            or token retrieval fails.
+        """
+
         if self._get_token_body is None:
             raise Exception(
                 "Authorization parameters are not provided. "
@@ -77,6 +132,19 @@ class KrameriusBaseClient:
             f.write(self._token)
 
     def _wait_for_retry(self, response: requests.Response) -> None:
+        """
+        Waits before retrying a failed request based on exponential backoff.
+
+        Parameters
+        ----------
+        response : requests.Response
+            The HTTP response object triggering the retry.
+
+        Raises
+        ------
+        requests.HTTPError
+            If the maximum number of retries is exceeded.
+        """
         if self._retries == 5:
             response.raise_for_status()
         self._retries += 1
@@ -90,6 +158,27 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
+        """
+        Internal request handler with retry and token refresh logic.
+
+        Parameters
+        ----------
+        method : Method
+            HTTP method (e.g., 'GET', 'POST').
+        endpoint : str
+            API endpoint relative to the host.
+        params : dict, optional
+            Query parameters.
+        data : Any, optional
+            Request body.
+        data_type : str, optional
+            Content type (e.g., 'application/json').
+
+        Returns
+        -------
+        requests.Response
+            The final response object after retries or token refresh.
+        """
         headers = {} if data_type or self._token else None
         if data_type:
             headers["Content-Type"] = data_type
@@ -129,6 +218,27 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
+        """
+        Sends a request to the admin API and returns the raw response.
+
+        Parameters
+        ----------
+        method : str
+            HTTP method.
+        endpoint : str
+            Admin API endpoint.
+        params : dict, optional
+            Query parameters.
+        data : Any, optional
+            Request payload.
+        data_type : str, optional
+            Content type.
+
+        Returns
+        -------
+        requests.Response
+            Raw HTTP response.
+        """
         with self._lock:
             return self._request(
                 method, f"api/admin/v7.0/{endpoint}", params, data, data_type
@@ -142,6 +252,27 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
+        """
+        Sends a request to the admin API and returns the JSON-decoded response.
+
+        Parameters
+        ----------
+        method : str
+            HTTP method.
+        endpoint : str
+            Admin API endpoint.
+        params : dict, optional
+            Query parameters.
+        data : Any, optional
+            Request payload.
+        data_type : str, optional
+            Content type.
+
+        Returns
+        -------
+        dict
+            JSON-decoded response.
+        """
         return self.admin_request_response(
             method, endpoint, params, data, data_type
         ).json()
@@ -154,6 +285,27 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
+        """
+        Sends a request to the client API and returns the raw response.
+
+        Parameters
+        ----------
+        method : str
+            HTTP method.
+        endpoint : str
+            Client API endpoint.
+        params : dict, optional
+            Query parameters.
+        data : Any, optional
+            Request payload.
+        data_type : str, optional
+            Content type.
+
+        Returns
+        -------
+        requests.Response
+            Raw HTTP response.
+        """
         with self._lock:
             return self._request(
                 method, f"api/client/v7.0/{endpoint}", params, data, data_type
@@ -167,6 +319,28 @@ class KrameriusBaseClient:
         data: Any | None = None,
         data_type: str | None = None,
     ):
+        """
+        Sends a request to the client API
+        and returns the JSON-decoded response.
+
+        Parameters
+        ----------
+        method : str
+            HTTP method.
+        endpoint : str
+            Client API endpoint.
+        params : dict, optional
+            Query parameters.
+        data : Any, optional
+            Request payload.
+        data_type : str, optional
+            Content type.
+
+        Returns
+        -------
+        dict
+            JSON-decoded response.
+        """
         return self.client_request_response(
             method, endpoint, params, data, data_type
         ).json()

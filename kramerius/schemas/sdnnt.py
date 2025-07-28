@@ -4,7 +4,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from ..custom_types import (
+from ..definitions import (
     License,
     Model,
     Pid,
