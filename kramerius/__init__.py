@@ -81,5 +81,3 @@ __all__ = [
     "TreePredicate",
     "validate_pid",
 ]
-
-__version__ = "0.0.11"
