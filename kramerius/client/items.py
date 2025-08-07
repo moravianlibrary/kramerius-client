@@ -29,3 +29,10 @@ class ItemsClient:
             f"items/{pid}/info/structure",
         )
         return response.json()["children"]["own"]
+
+    def get_item_model(self, pid: str) -> str:
+        response: requests.Response = self._client.client_request_response(
+            "GET",
+            f"items/{pid}/info/structure",
+        )
+        return response.json()["model"]
