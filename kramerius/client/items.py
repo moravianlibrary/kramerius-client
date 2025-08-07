@@ -1,6 +1,8 @@
 from kramerius.definitions.akubra import Xml
 
 from .base import KrameriusBaseClient, response_to_bytes, response_to_xml
+import requests
+
 
 
 class ItemsClient:
@@ -23,3 +25,10 @@ class ItemsClient:
                 data_type="image/jpeg",
             )
         )
+
+    def get_children(self, pid: str) -> list[dict[str, str]]:
+        response: requests.Response = self._client.client_request_response(
+            "GET",
+            f"items/{pid}/info/structure",
+        )
+        return response.json()["children"]["own"]
