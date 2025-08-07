@@ -1,3 +1,5 @@
+import requests
+
 from .base import KrameriusBaseClient
 from lxml import etree
 
@@ -20,3 +22,10 @@ class ItemsClient:
             f"items/{pid}/image",
             data_type="image/jpeg",
         ).content
+
+    def get_children(self, pid: str) -> list[dict[str, str]]:
+        response: requests.Response = self._client.client_request_response(
+            "GET",
+            f"items/{pid}/info/structure",
+        )
+        return response.json()["children"]["own"]
