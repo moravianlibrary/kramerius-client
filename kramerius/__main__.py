@@ -249,7 +249,7 @@ def main(
                 )
                 print(
                     f"License '{license}' {action_name} {len(pid_chunk)} "
-                    f"documents in process {process.get("uuid", None)}."
+                    f"documents in process {process.uuid}."
                 )
         else:
             print(
