@@ -467,7 +467,6 @@ def index_upgrade(
             doc.pid
             for doc in client.Search.search(
                 F(KrameriusField.Level, level)
-                & F(KrameriusField.Model, Model.Graphic)
                 & ~F(KrameriusField.Model, Model.Collection)
                 & ~F(KrameriusField.IndexerVersion, indexer_version),
                 fl=[KrameriusField.Pid.value],
