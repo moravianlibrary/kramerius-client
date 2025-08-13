@@ -10,13 +10,15 @@ Method = Literal["GET", "OPTIONS", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
 type Params = Dict[str, Any]
 
 
-def validate_pid(pid: str) -> str:
+def validate_pid(pid: str, raise_exception: bool = False) -> str | None:
     try:
         uuid_ = pid[5:] if pid.startswith("uuid:") else pid
         uuid.UUID(uuid_)
         return f"uuid:{uuid_}"
     except ValueError:
-        raise ValueError("Invalid UUID format")
+        if raise_exception:
+            raise
+        return None
 
 
 Pid = Annotated[
