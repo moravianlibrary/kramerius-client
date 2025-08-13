@@ -1,3 +1,4 @@
+import sys
 import uuid
 from enum import Enum
 from typing import Any, Dict, Literal
@@ -12,12 +13,15 @@ type Params = Dict[str, Any]
 
 def validate_pid(pid: str, raise_exception: bool = False) -> str | None:
     try:
-        uuid_ = pid[5:] if pid.startswith("uuid:") else pid
+        pid_ = pid.strip()
+        uuid_ = pid_[5:] if pid_.startswith("uuid:") else pid_
         uuid.UUID(uuid_)
         return f"uuid:{uuid_}"
     except ValueError:
         if raise_exception:
             raise
+        else:
+            print(f"Invalid PID: '{pid}'", file=sys.stderr)
         return None
 
 
@@ -75,6 +79,7 @@ class KrameriusField(MappingEnum):
 
     KeywordsFacet = "keywords.facet"
     ImageFullMimeType = "ds.img_full.mime"
+    IndexerVersion = "indexer_version"
 
 
 class Model(Enum):

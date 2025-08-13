@@ -11,3 +11,4 @@ class KrameriusConfig(BaseModel):
     timeout: int | None = None
     max_retries: int | None = None
     retry_timeout: int | None = None
+    max_active_processes: int | None = None

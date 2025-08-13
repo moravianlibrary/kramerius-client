@@ -15,6 +15,7 @@ KEYCLOAK_TOKEN_ENDPOINT = "/realms/kramerius/protocol/openid-connect/token"
 
 DEFAULT_MAX_RETRIES = 5
 DEFAULT_RETRY_TIMEOUT = 15
+DEFAULT_MAX_ACTIVE_PROCESSES = 2
 
 
 class KrameriusBaseClient:
@@ -98,6 +99,10 @@ class KrameriusBaseClient:
         self._max_retries = config.max_retries or DEFAULT_MAX_RETRIES
         self._retry_timeout = config.timeout or DEFAULT_RETRY_TIMEOUT
         self._retries = 0
+
+        self._max_active_processes = (
+            config.max_active_processes or DEFAULT_MAX_ACTIVE_PROCESSES
+        )
 
     def _fetch_access_token(self):
         """

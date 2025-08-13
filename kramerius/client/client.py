@@ -8,7 +8,7 @@ from .sdnnt import SdnntClient
 from .search import SearchClient
 from .statistics import StatisticsClient
 
-PAGINATE_PAGE_SIZE = 100
+PAGINATE_PAGE_SIZE = 10000
 
 
 class KrameriusClient:

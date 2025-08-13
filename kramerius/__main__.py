@@ -1,14 +1,22 @@
 import json
 import os
+from datetime import datetime
 from math import ceil
+from pathlib import Path
 from time import sleep
 from typing import List, Optional
 
 import typer
 from pydantic import BaseModel
+from solrify import F
 
-from kramerius.definitions.processing import ProcessState
-from kramerius.schemas.processing import ProcessParams
+from kramerius.definitions.kramerius import KrameriusField, Model
+from kramerius.definitions.processing import IndexationType, ProcessState
+from kramerius.schemas.processing import (
+    IndexParams,
+    PidOrPidlistParams,
+    ProcessParams,
+)
 
 from .client import KrameriusClient
 from .definitions import ProcessType, SdnntSyncAction, validate_pid
@@ -18,7 +26,6 @@ from .schemas import AddLicenseParams, KrameriusConfig, SearchParams
 app = typer.Typer(help="Kramerius CLI")
 
 
-MAX_ACTIVE_PROCESSES = 2
 MAX_PID_LIST_SIZE = 3000
 MAX_LEVEL = 5
 
@@ -61,13 +68,23 @@ def main(
         envvar="K7_RETRY_TIMEOUT",
         help="Timeout between retries in seconds",
     ),
+    max_active_processes: Optional[int] = typer.Option(
+        None,
+        help="Maximum number of active processes",
+    ),
+    log_dir: Path = typer.Option(
+        Path("/tmp"), help="Directory for storing run logs"
+    ),
 ) -> KrameriusClient:
     """
     Executed before any subcommand.
 
-    Used for building and storing the client.
+    Used for:
+    1. building and storing the client,
+    2. setting up logging for the CLI.
     """
     ctx.obj = {}
+    # Kramerius Client
     ctx.obj["client"] = KrameriusClient(
         KrameriusConfig(
             host=host,
@@ -79,8 +96,22 @@ def main(
             timeout=timeout,
             max_retries=max_retries,
             retry_timeout=retry_timeout,
+            max_active_processes=max_active_processes,
         )
     )
+
+    # File logging
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    out_file = log_dir / f"kramerius_cli_out_{timestamp}.log"
+    err_file = log_dir / f"kramerius_cli_err_{timestamp}.log"
+
+    out_file.touch(exist_ok=True)
+    err_file.touch(exist_ok=True)
+
+    ctx.obj["out_file"] = out_file
+    ctx.obj["err_file"] = err_file
 
 
 typer.CallbackParam
@@ -93,7 +124,16 @@ FlOption = typer.Option(None, help="Optional field list for search results")
 ProcessIdArg = typer.Argument(..., help="ID of the process to retrieve")
 LicenseArg = typer.Argument(..., help="License to add or remove")
 TargetDirArg = typer.Argument(..., help="Target directory for saving")
-IndexVersionArg = typer.Argument(..., help="Index version for upgrading")
+
+
+def _echo_log(ctx: typer.Context, message: str, err: bool = False):
+    typer.echo(message, err=err)
+    with open(
+        ctx.obj.get("out_file" if not err else "err_file"),
+        "a",
+        encoding="utf-8",
+    ) as f:
+        typer.echo(message, file=f, err=err)
 
 
 def _echo_pydantic(doc: BaseModel):
@@ -107,16 +147,21 @@ def _validate_pid_input(pid: Optional[str], pids_file: Optional[str]):
 
 
 def _plan_process(
+    ctx: typer.Context,
     client: KrameriusClient,
     type: ProcessType,
     params: ProcessParams | None = None,
 ):
     retry_timeout = client._base._retry_timeout
 
-    while client.Processing.get_num_active() >= MAX_ACTIVE_PROCESSES:
-        print(
+    while (
+        client.Processing.get_num_active()
+        >= client._base._max_active_processes
+    ):
+        _echo_log(
+            ctx,
             "Maximum number of active processes reached. "
-            "Waiting for some to finish..."
+            "Waiting for some to finish...",
         )
         sleep(retry_timeout)
 
@@ -124,15 +169,16 @@ def _plan_process(
 
 
 def _run_process(
+    ctx: typer.Context,
     client: KrameriusClient,
     type: ProcessType,
     params: ProcessParams | None = None,
 ):
-    plan_response = _plan_process(client, type, params)
+    plan_response = _plan_process(ctx, client, type, params)
     uuid = plan_response.uuid
     state = plan_response.state
 
-    typer.echo(f"Process of type {type.value} and UUID {uuid} started.")
+    _echo_log(ctx, f"Process of type {type.value} and UUID {uuid} started.")
 
     fail_count = 0
     max_retries = client._base._max_retries
@@ -142,50 +188,53 @@ def _run_process(
         sleep(retry_timeout)
         state = client.Processing.get(uuid=uuid).process.state
 
-        typer.echo(f"Process with UUID '{uuid}' is in state: {state.value}")
+        _echo_log(
+            ctx, f"Process with UUID '{uuid}' is in state: {state.value}."
+        )
         if state == ProcessState.Failed:
             fail_count += 1
-            typer.echo(
+            _echo_log(
+                ctx,
                 f"Process with UUID '{uuid}' failed "
-                f"({fail_count}/{max_retries})."
+                f"({fail_count}/{max_retries}).",
             )
 
             if fail_count >= max_retries:
-                typer.echo("Process failed too many times. Aborting.")
+                _echo_log(ctx, "Process failed too many times. Aborting.")
                 raise typer.Exit(code=1)
 
-            plan_response = _plan_process(client, type, params)
+            plan_response = _plan_process(ctx, client, type, params)
             uuid = plan_response.uuid
             state = plan_response.state
 
-            typer.echo(
-                f"Process of type {type.value} and UUID {uuid} started."
+            _echo_log(
+                ctx, f"Process of type {type.value} and UUID {uuid} started."
             )
 
-    typer.echo(f"Process of type {type.value} and UUID {uuid} finished.")
+    _echo_log(ctx, f"Process of type {type.value} and UUID {uuid} finished.")
 
 
 def _run_process_for_pidlist(
+    ctx: typer.Context,
     client: KrameriusClient,
-    pid_list: List[str],
     type: ProcessType,
-    params: ProcessParams | None = None,
+    params: PidOrPidlistParams,
 ):
+    pid_list = params.pidlist
     num_chunks = ceil(len(pid_list) / MAX_PID_LIST_SIZE)
     i = 1
 
-    typer.echo(f"Processing {len(pid_list)} PIDs in {num_chunks} chunks.")
+    _echo_log(ctx, f"Processing {len(pid_list)} PIDs in {num_chunks} chunks.")
 
     for pid_chunk in chunked(pid_list, MAX_PID_LIST_SIZE):
-        params_copy = (
-            params.model_copy(deep=True, update={"pidlist": pid_chunk})
-            if params
-            else None
+        params_copy = params.model_copy(
+            deep=True, update={"pidlist": pid_chunk}
         )
-        typer.echo(
-            f"Processing chunk {i}/{num_chunks} with {len(pid_chunk)} PIDs."
+        _echo_log(
+            ctx,
+            f"Processing chunk {i}/{num_chunks} with {len(pid_chunk)} PIDs.",
         )
-        _run_process(client, type, params_copy)
+        _run_process(ctx, client, type, params_copy)
         i += 1
 
 
@@ -226,7 +275,7 @@ def get_num_found(
 ):
     client: KrameriusClient = ctx.obj["client"]
 
-    typer.echo(f"Number of documents found: {client.Search.num_found(query)}")
+    typer.echo(f"Number of documents found: {client.Search.num_found(query)}.")
 
 
 @app.command()
@@ -249,19 +298,21 @@ def get_sdnnt_changes(
     client: KrameriusClient = ctx.obj["client"]
 
     typer.echo(
-        f"Sdnnt sync timestamp: {client.Sdnnt.get_sdnnt_timestamp()}", err=True
+        "Sdnnt sync timestamp: "
+        f"{client.Sdnnt.get_sdnnt_timestamp().isoformat()}.",
+        err=True,
     )
 
     for record in client.Sdnnt.iterate_sdnnt_changes():
         if len(record.sync_actions) > 1:
-            typer.echo(f"Multiple actions in record: {record}", err=True)
+            typer.echo(f"Multiple actions in record: {record}.", err=True)
         elif record.sync_actions[0] == SdnntSyncAction.PartialChange:
             for granularity in client.Sdnnt.get_sdnnt_granularity(record.id):
                 _echo_pydantic(granularity)
         elif len(record.sync_actions) == 1:
             _echo_pydantic(record)
         else:
-            typer.echo(f"No sync actions in record: {record}", err=True)
+            typer.echo(f"No sync actions in record: {record}.", err=True)
 
 
 @app.command()
@@ -270,7 +321,7 @@ def run_sdnnt_sync(
 ):
     client: KrameriusClient = ctx.obj["client"]
 
-    _run_process(client, ProcessType.SdnntSync)
+    _run_process(ctx, client, ProcessType.SdnntSync)
 
 
 @app.command()
@@ -329,6 +380,7 @@ def add_license(
             valid_pids = [validate_pid(line) for line in file]
             valid_pids = [pid for pid in valid_pids if pid is not None]
         _run_process_for_pidlist(
+            ctx,
             client,
             ProcessType.AddLicense,
             AddLicenseParams(pidlist=valid_pids, license=license),
@@ -357,6 +409,7 @@ def remove_license(
             valid_pids = [validate_pid(line) for line in file]
             valid_pids = [pid for pid in valid_pids if pid is not None]
         _run_process_for_pidlist(
+            ctx,
             client,
             ProcessType.RemoveLicense,
             AddLicenseParams(pidlist=valid_pids, license=license),
@@ -389,22 +442,56 @@ def get_image(
                 image_path = os.path.join(target_dir, f"{uuid}.jpg")
                 with open(image_path, "wb") as img_file:
                     img_file.write(image_data)
-                typer.echo(f"Image for PID '{pid}' saved to '{image_path}'.")
+                _echo_log(
+                    ctx, f"Image for PID '{pid}' saved to '{image_path}'."
+                )
             else:
-                typer.echo(f"Image for PID '{pid}' retrieved successfully.")
+                _echo_log(
+                    ctx, f"Image for PID '{pid}' retrieved successfully."
+                )
         except Exception as e:
-            typer.echo(f"Failed to retrieve image for PID '{pid}': {e}")
+            _echo_log(ctx, f"Failed to retrieve image for PID '{pid}': {e}")
 
 
 @app.command()
 def index_upgrade(
     ctx: typer.Context,
-    index_version: str = IndexVersionArg,
+    indexer_version: str = typer.Argument(
+        ..., help="Index version for upgrading"
+    ),
 ):
     client: KrameriusClient = ctx.obj["client"]
 
     for level in range(0, MAX_LEVEL + 1):
-        
+        pids = [
+            doc.pid
+            for doc in client.Search.search(
+                F(KrameriusField.Level, level)
+                & F(KrameriusField.Model, Model.Graphic)
+                & ~F(KrameriusField.Model, Model.Collection)
+                & ~F(KrameriusField.IndexerVersion, indexer_version),
+                fl=[KrameriusField.Pid.value],
+            )
+            if doc.pid
+        ]
+        _echo_log(
+            ctx,
+            f"Level {level}: Found {len(pids)} PIDs "
+            f"without indexer version {indexer_version}."
+            f"{'' if pids else ' Skipping.'}",
+        )
+        if not pids:
+            continue
+        _run_process_for_pidlist(
+            ctx,
+            client,
+            ProcessType.Index,
+            IndexParams(
+                pidlist=pids,
+                type=IndexationType.TreeAndFosterTrees,
+                ignoreInconsistentObjects=True,
+            ),
+        )
 
 
 if __name__ == "__main__":
