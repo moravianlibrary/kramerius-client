@@ -196,6 +196,7 @@ def _run_process(
         _echo_log(
             ctx, f"Process with UUID '{uuid}' is in state: {state.value}."
         )
+
         if state == ProcessState.Failed:
             fail_count += 1
             _echo_log(
@@ -206,7 +207,7 @@ def _run_process(
 
             if fail_count >= max_retries:
                 _echo_log(ctx, "Process failed too many times. Aborting.")
-                raise typer.Exit(code=1)
+                typer.Exit(code=1)
 
             plan_response = _plan_process(ctx, client, type, params)
             uuid = plan_response.uuid
@@ -215,6 +216,15 @@ def _run_process(
             _echo_log(
                 ctx, f"Process of type {type.value} and UUID {uuid} started."
             )
+
+        elif state != ProcessState.Running:
+            _echo_log(
+                ctx,
+                f"Process with UUID '{uuid}' "
+                f"is in unexpected state: {state.value}.",
+                err=True,
+            )
+            typer.Exit(1)
 
     _echo_log(ctx, f"Process of type {type.value} and UUID {uuid} finished.")
 
@@ -469,35 +479,41 @@ def index_upgrade(
 ):
     client: KrameriusClient = ctx.obj["client"]
 
-    for level in range(0, MAX_LEVEL + 1):
-        pids = [
-            doc.pid
-            for doc in client.Search.search(
-                F(KrameriusField.Level, level)
-                & ~F(KrameriusField.Model, Model.Collection)
-                & ~F(KrameriusField.IndexerVersion, indexer_version),
-                fl=[KrameriusField.Pid.value],
+    try:
+        for level in range(0, MAX_LEVEL + 1):
+            pids = [
+                doc.pid
+                for doc in client.Search.search(
+                    F(KrameriusField.Level, level)
+                    & ~F(KrameriusField.Model, Model.Collection)
+                    & ~F(KrameriusField.IndexerVersion, indexer_version),
+                    fl=[KrameriusField.Pid.value],
+                )
+                if doc.pid
+            ]
+            _echo_log(
+                ctx,
+                f"Level {level}: Found {len(pids)} PIDs "
+                f"without indexer version {indexer_version}."
+                f"{'' if pids else ' Skipping.'}",
             )
-            if doc.pid
-        ]
-        _echo_log(
-            ctx,
-            f"Level {level}: Found {len(pids)} PIDs "
-            f"without indexer version {indexer_version}."
-            f"{'' if pids else ' Skipping.'}",
-        )
-        if not pids:
-            continue
-        _run_process_for_pidlist(
-            ctx,
-            client,
-            ProcessType.Index,
-            IndexParams(
-                pidlist=pids,
-                type=IndexationType.TreeAndFosterTrees,
-                ignoreInconsistentObjects=True,
-            ),
-        )
+            if not pids:
+                continue
+            _run_process_for_pidlist(
+                ctx,
+                client,
+                ProcessType.Index,
+                IndexParams(
+                    pidlist=pids,
+                    type=IndexationType.TreeAndFosterTrees,
+                    ignoreInconsistentObjects=True,
+                ),
+            )
+    except Exception as e:
+        _echo_log(ctx, f"Index upgrade failed: {e}", err=True)
+        _echo_log(ctx, "Retrying in 10 minutes...")
+        sleep(600)
+        index_upgrade(ctx, indexer_version)
 
 
 if __name__ == "__main__":
