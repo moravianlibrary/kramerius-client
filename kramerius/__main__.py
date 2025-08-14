@@ -75,6 +75,9 @@ def main(
     log_dir: Path = typer.Option(
         Path("/tmp"), help="Directory for storing run logs"
     ),
+    pidlist_size: int = typer.Option(
+        MAX_PID_LIST_SIZE, help="Maximum size of the PID list"
+    ),
 ) -> KrameriusClient:
     """
     Executed before any subcommand.
@@ -99,6 +102,8 @@ def main(
             max_active_processes=max_active_processes,
         )
     )
+
+    ctx.obj["pidlist_size"] = pidlist_size
 
     # File logging
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -220,13 +225,15 @@ def _run_process_for_pidlist(
     type: ProcessType,
     params: PidOrPidlistParams,
 ):
+    pidlist_size = ctx.obj.get("pidlist_size", MAX_PID_LIST_SIZE)
+
     pid_list = params.pidlist
-    num_chunks = ceil(len(pid_list) / MAX_PID_LIST_SIZE)
+    num_chunks = ceil(len(pid_list) / pidlist_size)
     i = 1
 
     _echo_log(ctx, f"Processing {len(pid_list)} PIDs in {num_chunks} chunks.")
 
-    for pid_chunk in chunked(pid_list, MAX_PID_LIST_SIZE):
+    for pid_chunk in chunked(pid_list, pidlist_size):
         params_copy = params.model_copy(
             deep=True, update={"pidlist": pid_chunk}
         )
