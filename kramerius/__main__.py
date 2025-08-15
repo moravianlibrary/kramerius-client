@@ -178,6 +178,7 @@ def _run_process(
     client: KrameriusClient,
     type: ProcessType,
     params: ProcessParams | None = None,
+    skip_retries: bool = False,
 ):
     plan_response = _plan_process(ctx, client, type, params)
     uuid = plan_response.uuid
@@ -189,9 +190,12 @@ def _run_process(
     max_retries = client._base._max_retries
     retry_timeout = client._base._retry_timeout
 
-    while state != ProcessState.Finished:
+    while state in [ProcessState.Planned, ProcessState.Running]:
         sleep(retry_timeout)
         state = client.Processing.get(uuid=uuid).process.state
+
+        if skip_retries:
+            continue
 
         _echo_log(
             ctx, f"Process with UUID '{uuid}' is in state: {state.value}."
@@ -207,7 +211,7 @@ def _run_process(
 
             if fail_count >= max_retries:
                 _echo_log(ctx, "Process failed too many times. Aborting.")
-                typer.Exit(code=1)
+                raise typer.Exit(code=1)
 
             plan_response = _plan_process(ctx, client, type, params)
             uuid = plan_response.uuid
@@ -224,7 +228,7 @@ def _run_process(
                 f"is in unexpected state: {state.value}.",
                 err=True,
             )
-            typer.Exit(1)
+            raise typer.Exit(1)
 
     _echo_log(ctx, f"Process of type {type.value} and UUID {uuid} finished.")
 
@@ -234,6 +238,7 @@ def _run_process_for_pidlist(
     client: KrameriusClient,
     type: ProcessType,
     params: PidOrPidlistParams,
+    skip_retries: bool = False,
 ):
     pidlist_size = ctx.obj.get("pidlist_size", MAX_PID_LIST_SIZE)
 
@@ -251,7 +256,7 @@ def _run_process_for_pidlist(
             ctx,
             f"Processing chunk {i}/{num_chunks} with {len(pid_chunk)} PIDs.",
         )
-        _run_process(ctx, client, type, params_copy)
+        _run_process(ctx, client, type, params_copy, skip_retries)
         i += 1
 
 
@@ -401,6 +406,7 @@ def add_license(
             client,
             ProcessType.AddLicense,
             AddLicenseParams(pidlist=valid_pids, license=license),
+            True,
         )
 
 
@@ -430,6 +436,7 @@ def remove_license(
             client,
             ProcessType.RemoveLicense,
             AddLicenseParams(pidlist=valid_pids, license=license),
+            True,
         )
 
 
@@ -508,6 +515,7 @@ def index_upgrade(
                     type=IndexationType.TreeAndFosterTrees,
                     ignoreInconsistentObjects=True,
                 ),
+                True,
             )
     except Exception as e:
         _echo_log(ctx, f"Index upgrade failed: {e}", err=True)
