@@ -51,6 +51,62 @@ pip install -r requirements.txt
 
 ## Usage
 
+### As Kramerius client
+
+After installing the package, you can run the CLI directly using:
+```bash
+kramerius-client
+```
+
+To see available options and commands, run:
+```bash
+kramerius-client --help
+
+ Usage: python -m kramerius [OPTIONS] COMMAND [ARGS]...
+
+ Kramerius CLI
+
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --host                        TEXT     Kramerius server host [env var: K7_HOST]                                     │
+│ --keycloak-host               TEXT     Keycloak server host [env var: K7_KEYCLOAK_HOST]                             │
+│ --client-id                   TEXT     Keycloak client ID [env var: K7_CLIENT_ID]                                   │
+│ --client-secret               TEXT     Keycloak client secret [env var: K7_CLIENT_SECRET]                           │
+│ --username                    TEXT     Username for authentication with Keycloak [env var: K7_USERNAME]             │
+│ --password                    TEXT     Password for authentication with Keycloak [env var: K7_PASSWORD]             │
+│ --timeout                     INTEGER  Request timeout in seconds [env var: K7_TIMEOUT] [default: 30]               │
+│ --max-retries                 INTEGER  Maximum number of retries for failed requests [env var: K7_MAX_RETRIES]      │
+│                                        [default: 5]                                                                 │
+│ --retry-timeout               INTEGER  Timeout between retries in seconds [env var: K7_RETRY_TIMEOUT] [default: 30] │
+│ --max-active-processes        INTEGER  Maximum number of active processes                                           │
+│ --log-dir                     PATH     Directory for storing run logs [default: /tmp]                               │
+│ --pidlist-size                INTEGER  Maximum size of the PID list [default: 3000]                                 │
+│ --install-completion                   Install completion for the current shell.                                    │
+│ --show-completion                      Show completion for the current shell, to copy it or customize the           │
+│                                        installation.                                                                │
+│ --help                                 Show this message and exit.                                                  │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ get-document                                                                                                        │
+│ get-num-found                                                                                                       │
+│ search-for                                                                                                          │
+│ get-sdnnt-changes                                                                                                   │
+│ run-sdnnt-sync                                                                                                      │
+│ get-process                                                                                                         │
+│ search-statistics                                                                                                   │
+│ add-license                                                                                                         │
+│ remove-license                                                                                                      │
+│ get-image                                                                                                           │
+│ index-upgrade                                                                                                       │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+
+**Notes:**
+- Most CLI options can also be set via environment variables.
+- You can use a `.env` file to set CLI options. Make sure to run the CLI from the directory where the `.env` file is located. Refer to `.env.template` in this repository for the correct format.
+- Command-line options override environment variable values.
+
+### As library
+
 ```python
 from kramerius_client import KrameriusClient, KrameriusConfig
 

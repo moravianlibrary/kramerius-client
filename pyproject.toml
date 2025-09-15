@@ -27,3 +27,6 @@ include = ["kramerius*"]
 
 [tool.setuptools.dynamic]
 readme = {file = "README.md"}
+
+[project.scripts]
+kramerius = "kramerius.__main__:main"

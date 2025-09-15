@@ -7,6 +7,7 @@ from time import sleep
 from typing import List, Optional
 
 import typer
+from dotenv import load_dotenv
 from pydantic import BaseModel
 from solrify import F
 
@@ -22,6 +23,9 @@ from .client import KrameriusClient
 from .definitions import ProcessType, SdnntSyncAction, validate_pid
 from .parsers import chunked
 from .schemas import AddLicenseParams, KrameriusConfig, SearchParams
+
+load_dotenv()
+
 
 app = typer.Typer(help="Kramerius CLI")
 
