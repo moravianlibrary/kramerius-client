@@ -57,3 +57,10 @@ class ProcessingClient:
             {"state": ProcessState.Planned.value, "resultSize": 1},
         )["total_size"]
         return num_active
+
+    def get_count_by_state(self, state: ProcessState) -> int:
+        return self._client.admin_request(
+            "GET",
+            "processes/batches",
+            {"state": state.value, "resultSize": 1},
+        )["total_size"]
