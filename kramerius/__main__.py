@@ -8,6 +8,7 @@ from typing import List, Optional
 
 import typer
 from dotenv import load_dotenv
+from lxml import etree
 from pydantic import BaseModel
 from solrify import F
 
@@ -526,6 +527,102 @@ def index_upgrade(
         _echo_log(ctx, "Retrying in 10 minutes...")
         sleep(600)
         index_upgrade(ctx, indexer_version)
+
+
+@app.command()
+def fix_rels_ext_ns(
+    ctx: typer.Context,
+    pid: Optional[str] = PidOption,
+    pids_file: Optional[str] = PidsFileOption,
+):
+    NSMAP = {
+        "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+        "kramerius": "http://www.nsdl.org/ontologies/relationships#",
+        "oai": "http://www.openarchives.org/OAI/2.0/",
+        "fedora-model": "info:fedora/fedora-system:def/model#",
+        "foxml": "info:fedora/fedora-system:def/foxml#",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    }
+    TAG_PREFIX_MAP = {
+        "hasModel": "fedora-model",
+        "itemID": "oai",
+    }
+
+    client: KrameriusClient = ctx.obj["client"]
+
+    _validate_pid_input(pid, pids_file)
+
+    pids = [pid] if pid else []
+    if pids_file:
+        with open(pids_file, "r") as file:
+            pids.extend(line.strip() for line in file if line.strip())
+
+    for pid in pids:
+        rels_ext_xml = client.Akubra.get_ds_xml_content(pid, "RELS-EXT")
+
+        description = rels_ext_xml.find(
+            ".//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description"
+        )
+        if description is None:
+            typer.echo(
+                f"PID '{pid}': No rdf:Description element found.", err=True
+            )
+            continue
+
+        has_correct_ns = rels_ext_xml.nsmap == NSMAP
+
+        for child in description:
+            qname = etree.QName(child)
+            tag_local = qname.localname
+            ns = qname.namespace
+
+            if ns != NSMAP.get(TAG_PREFIX_MAP.get(tag_local, "kramerius")):
+                has_correct_ns = False
+                break
+
+        if has_correct_ns:
+            typer.echo(f"PID '{pid}': Namespaces are already correct.")
+            continue
+
+        typer.echo(f"PID '{pid}': Fixing namespaces...")
+
+        new_rels_ext_xml = etree.Element("{%s}RDF" % NSMAP["rdf"], nsmap=NSMAP)
+
+        new_desc = etree.SubElement(
+            new_rels_ext_xml,
+            "{%s}Description" % NSMAP["rdf"],
+            attrib=description.attrib,
+        )
+
+        for child in description:
+            tag_local = etree.QName(child).localname
+            text = child.text
+            attrib = child.attrib
+
+            if tag_local == "hasModel":
+                new_tag = "{%s}hasModel" % NSMAP["fedora-model"]
+            elif tag_local == "itemID":
+                new_tag = "{%s}itemID" % NSMAP["oai"]
+            else:
+                new_tag = "{%s}%s" % (NSMAP["kramerius"], tag_local)
+
+            new_child = etree.SubElement(new_desc, new_tag, attrib=attrib)
+            if text:
+                new_child.text = text
+
+        success = client.Akubra.purge_stream(pid, "RELS-EXT")
+        if not success:
+            typer.echo(f"PID '{pid}': Failed to purge RELS-EXT.", err=True)
+            continue
+
+        success = client.Akubra.create_xml_stream(
+            pid, "RELS-EXT", new_rels_ext_xml
+        )
+        if not success:
+            typer.echo(f"PID '{pid}': Failed to create RELS-EXT.", err=True)
+            continue
+
+        typer.echo(f"PID '{pid}': Successfully fixed namespaces.")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from typing import List
-from xml import etree
+
+from lxml import etree
 
 from ..definitions.akubra import FoxmlExportFormat, Xml
 from ..schemas.akubra import (
@@ -40,6 +41,15 @@ class AkubraClient:
 
     def get_ds_content(self, pid: str, dsid: str) -> bytes:
         return self._client.parse_bytes(
+            self._client._request(
+                "GET",
+                "api/admin/v7.0/repository/getDatastreamContent",
+                {"pid": pid, "dsId": dsid},
+            )
+        )
+
+    def get_ds_xml_content(self, pid: str, dsid: str) -> Xml:
+        return self._client.parse_xml(
             self._client._request(
                 "GET",
                 "api/admin/v7.0/repository/getDatastreamContent",
@@ -126,8 +136,10 @@ class AkubraClient:
                         "dsId": dsid,
                         "mimeType": mime_type,
                     },
-                    data=etree.tostring(xml, encoding="utf-8"),
-                    data_type="application/xml",
+                    data=etree.tostring(
+                        xml, encoding="utf-8", xml_declaration=True
+                    ),
+                    data_type="application/octet-stream",
                 ),
                 AcknowledgeDsId,
             ).dsid

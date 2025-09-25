@@ -4,6 +4,7 @@ from time import sleep
 from typing import Any
 
 import requests
+from lxml import etree
 from pydantic import BaseModel
 
 from kramerius.definitions.akubra import Xml
@@ -153,6 +154,10 @@ class KrameriusBaseClient:
         requests.HTTPError
             If the maximum number of retries is exceeded.
         """
+        if response.status_code in [
+            status for status in range(400, 500) if status not in [401, 403]
+        ]:
+            response.raise_for_status()
         if self._retries == 5:
             response.raise_for_status()
         self._retries += 1
@@ -204,8 +209,8 @@ class KrameriusBaseClient:
         if response.status_code == 401 or (
             response.status_code == 403
             and (
-                "user 'not_logged'" in response.json().get("message", "")
-                or "not allowed" == response.json().get("message", "")
+                "'not_logged'" in response.json().get("message", "")
+                or "not allowed" in response.json().get("message", "")
             )
         ):
             self._fetch_access_token()
@@ -238,7 +243,7 @@ class KrameriusBaseClient:
         return schema.model_validate(response.json())
 
     def parse_xml(self, response: requests.Response) -> Xml:
-        return Xml.fromstring(response.content)
+        return etree.fromstring(response.content)
 
     def admin_request_response(
         self,

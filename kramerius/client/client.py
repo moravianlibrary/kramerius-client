@@ -1,6 +1,7 @@
 from solrify import SolrConfig
 
 from ..schemas import KrameriusConfig
+from .akubra import AkubraClient
 from .base import KrameriusBaseClient
 from .items import ItemsClient
 from .processing import ProcessingClient
@@ -74,3 +75,4 @@ class KrameriusClient:
             )
         )
         self.Statistics = StatisticsClient(self._base)
+        self.Akubra = AkubraClient(self._base)
