@@ -4,6 +4,9 @@ from time import sleep
 from typing import Any
 
 import requests
+from pydantic import BaseModel
+
+from kramerius.definitions.akubra import Xml
 
 from ..definitions import Method, Params
 from ..schemas import KrameriusConfig
@@ -214,6 +217,28 @@ class KrameriusBaseClient:
 
         self._retries = 0
         return response
+
+    def request(
+        self,
+        method: Method,
+        endpoint: str,
+        params: Params | None = None,
+        data: Any | None = None,
+        data_type: str | None = None,
+    ):
+        with self._lock:
+            return self._request(method, endpoint, params, data, data_type)
+
+    def parse_bytes(self, response: requests.Response) -> bytes:
+        return response.content
+
+    def parse_schema(
+        self, response: requests.Response, schema: BaseModel
+    ) -> Any:
+        return schema.model_validate(response.json())
+
+    def parse_xml(self, response: requests.Response) -> Xml:
+        return Xml.fromstring(response.content)
 
     def admin_request_response(
         self,
