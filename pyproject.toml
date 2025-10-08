@@ -24,4 +24,4 @@ dependencies = {file = "requirements.txt"}
 readme = {file = "README.md"}
 
 [project.scripts]
-kramerius = "kramerius.__main__:main"
+kramerius = "kramerius.__main__:app"
