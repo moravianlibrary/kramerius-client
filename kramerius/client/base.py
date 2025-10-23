@@ -70,6 +70,7 @@ class KrameriusBaseClient:
         if path.exists(TOKEN_TMP_FILE):
             with open(TOKEN_TMP_FILE, "r") as f:
                 self._token = f.read().strip()
+        self._after_token_fetch_retry = False
 
         self._lock = threading.Lock()
 
@@ -239,8 +240,14 @@ class KrameriusBaseClient:
                 or "not allowed" in response.json().get("message", "")
             )
         ):
+            if self._after_token_fetch_retry:
+                response.raise_for_status()
+
             self._fetch_access_token()
+            self._after_token_fetch_retry = True
             return self._request(method, endpoint, params, data, data_type)
+
+        self._after_token_fetch_retry = False
 
         if not response.ok:
             self._wait_for_retry(response)
