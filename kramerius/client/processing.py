@@ -6,7 +6,7 @@ from ..schemas import (
     KrameriusSingleProcess,
     ProcessParams,
 )
-from .base import KrameriusBaseClient
+from .base import KrameriusBaseClient, response_to_schema
 
 
 class ProcessingClient:
@@ -16,51 +16,41 @@ class ProcessingClient:
     def plan(
         self, type: ProcessType, params: ProcessParams | None = None
     ) -> KrameriusProcessPlanResponse:
-        process = KrameriusPlanProcess(defid=type, params=params)
-        return KrameriusProcessPlanResponse.model_validate(
-            self._client.admin_request(
+        return response_to_schema(
+            self._client.request(
                 "POST",
-                "processes",
-                data=process.model_dump_json(exclude_none=True),
-                data_type="application/json",
-            )
+                "api/admin/v7.0/processes",
+                data=KrameriusPlanProcess(
+                    defid=type, params=params
+                ).model_dump_json(exclude_none=True),
+            ),
+            KrameriusProcessPlanResponse,
         )
 
     def get(
         self, id: str | None = None, uuid: str | None = None
     ) -> KrameriusSingleProcess:
-        if id is None and uuid is None:
-            raise ValueError("Id or uuid of the process must be provided")
+        endpoint = None
         if id:
-            return KrameriusSingleProcess.model_validate(
-                self._client.admin_request(
-                    "GET",
-                    f"processes/by_process_id/{id}",
-                )
-            )
-        return KrameriusSingleProcess.model_validate(
-            self._client.admin_request(
-                "GET",
-                f"processes/by_process_uuid/{uuid}",
-            )
+            endpoint = f"api/admin/v7.0/processes/by_process_id/{id}"
+        elif uuid:
+            endpoint = f"api/admin/v7.0/processes/by_process_uuid/{uuid}"
+        else:
+            raise ValueError("Id or uuid of the process must be provided")
+
+        return response_to_schema(
+            self._client.request("GET", endpoint), KrameriusSingleProcess
         )
 
-    def get_num_active(self) -> int:
-        num_active = self._client.admin_request(
-            "GET",
-            "processes/batches",
-            {"state": ProcessState.Running.value, "resultSize": 1},
-        )["total_size"]
-        num_active += self._client.admin_request(
-            "GET",
-            "processes/batches",
-            {"state": ProcessState.Planned.value, "resultSize": 1},
-        )["total_size"]
-        return num_active
-
     def get_count_by_state(self, state: ProcessState) -> int:
-        return self._client.admin_request(
+        return self._client.request(
             "GET",
-            "processes/batches",
+            "api/admin/v7.0/processes/batches",
             {"state": state.value, "resultSize": 1},
         )["total_size"]
+
+    def get_num_active(self) -> int:
+        return sum(
+            self.get_count_by_state(state)
+            for state in [ProcessState.Running, ProcessState.Planned]
+        )

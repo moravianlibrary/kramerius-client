@@ -14,7 +14,12 @@ from ..schemas.akubra import (
     Relation,
     Relations,
 )
-from .base import KrameriusBaseClient
+from .base import (
+    KrameriusBaseClient,
+    response_to_bytes,
+    response_to_schema,
+    response_to_xml,
+)
 
 
 class AkubraClient:
@@ -22,8 +27,8 @@ class AkubraClient:
         self._client = client
 
     def export(self, pid: str, format: FoxmlExportFormat) -> Xml:
-        return self._client.parse_xml(
-            self._client._request(
+        return response_to_xml(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/export",
                 {"pid": pid, "format": format.value},
@@ -31,8 +36,8 @@ class AkubraClient:
         )
 
     def get_metadata(self, pid: str) -> ObjectMetadata:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "GET",
                 f"api/admin/v7.0/repository/objects/{pid}/meta",
             ),
@@ -40,8 +45,8 @@ class AkubraClient:
         )
 
     def get_ds_content(self, pid: str, dsid: str) -> bytes:
-        return self._client.parse_bytes(
-            self._client._request(
+        return response_to_bytes(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/getDatastreamContent",
                 {"pid": pid, "dsId": dsid},
@@ -49,8 +54,8 @@ class AkubraClient:
         )
 
     def get_ds_xml_content(self, pid: str, dsid: str) -> Xml:
-        return self._client.parse_xml(
-            self._client._request(
+        return response_to_xml(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/getDatastreamContent",
                 {"pid": pid, "dsId": dsid},
@@ -58,8 +63,8 @@ class AkubraClient:
         )
 
     def get_ds_metadata(self, pid: str, dsid: str) -> DatastreamMetadata:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/getDatastreamMetadata",
                 {"pid": pid, "dsId": dsid},
@@ -68,8 +73,8 @@ class AkubraClient:
         )
 
     def get_ds_names(self, pid: str) -> List[str]:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "GET",
                 f"api/admin/v7.0/repository/datastreams/{pid}",
             ),
@@ -77,8 +82,8 @@ class AkubraClient:
         ).datastreams
 
     def get_relations(self, pid: str) -> List[Relation]:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/getRelations",
                 {"pid": pid},
@@ -87,8 +92,8 @@ class AkubraClient:
         ).relations
 
     def get_literals(self, pid: str) -> List[Literal]:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "GET",
                 "api/admin/v7.0/repository/getLiterals",
                 {"pid": pid},
@@ -97,8 +102,8 @@ class AkubraClient:
         ).literals
 
     def ingest(self, foxml: Xml) -> str:
-        return self._client.parse_schema(
-            self._client._request(
+        return response_to_schema(
+            self._client.request(
                 "POST",
                 "api/admin/v7.0/repository/ingest",
                 data=etree.tostring(foxml, encoding="utf-8"),
@@ -109,8 +114,8 @@ class AkubraClient:
 
     def purge(self, pid: str) -> bool:
         return (
-            self._client.parse_schema(
-                self._client._request(
+            response_to_schema(
+                self._client.request(
                     "DELETE",
                     f"api/admin/v7.0/repository/objects/{pid}",
                 ),
@@ -127,8 +132,8 @@ class AkubraClient:
         mime_type: str = "application/rdf+xml",
     ) -> bool:
         return (
-            self._client.parse_schema(
-                self._client._request(
+            response_to_schema(
+                self._client.request(
                     "POST",
                     "api/admin/v7.0/repository/createXMLDatastream",
                     params={
@@ -154,8 +159,8 @@ class AkubraClient:
         mime_type: str,
     ) -> bool:
         return (
-            self._client.parse_schema(
-                self._client._request(
+            response_to_schema(
+                self._client.request(
                     "POST",
                     "api/admin/v7.0/repository/createManagedDatastream",
                     params={
@@ -179,8 +184,8 @@ class AkubraClient:
         mime_type: str,
     ) -> bool:
         return (
-            self._client.parse_schema(
-                self._client._request(
+            response_to_schema(
+                self._client.request(
                     "POST",
                     "api/admin/v7.0/repository/createExternalDatastream",
                     params={
@@ -197,8 +202,8 @@ class AkubraClient:
 
     def purge_stream(self, pid: str, dsid: str) -> bool:
         return (
-            self._client.parse_schema(
-                self._client._request(
+            response_to_schema(
+                self._client.request(
                     "DELETE",
                     "api/admin/v7.0/repository/deleteDatastream",
                     {"pid": pid, "dsId": dsid},

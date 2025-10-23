@@ -5,7 +5,7 @@ from ..schemas import (
     SdnntGranularityResponse,
     SdnntResponse,
 )
-from .base import KrameriusBaseClient
+from .base import KrameriusBaseClient, response_to_schema
 
 PAGE_SIZE = 100
 
@@ -16,7 +16,7 @@ class SdnntClient:
 
     def get_sdnnt_timestamp(self, tzinfo=timezone.utc) -> datetime | None:
         timestamp = (
-            self._client.admin_request("GET", "sdnnt/sync/timestamp")
+            self._client.request("GET", "api/admin/v7.0/sdnnt/sync/timestamp")
             .get("docs")[0]
             .get("fetched")
         )
@@ -29,10 +29,11 @@ class SdnntClient:
         )
 
     def get_sdnnt_changes(self, page: int, rows: int) -> SdnntResponse:
-        return SdnntResponse.model_validate(
-            self._client.admin_request(
-                "GET", f"sdnnt/sync?rows={rows}&page={page}"
-            )
+        return response_to_schema(
+            self._client.request(
+                "GET", f"api/admin/v7.0/sdnnt/sync?rows={rows}&page={page}"
+            ),
+            SdnntResponse,
         )
 
     def iterate_sdnnt_changes(self):
@@ -48,7 +49,7 @@ class SdnntClient:
     def get_sdnnt_granularity(self, id: str) -> SdnntGranularityResponse:
         return [
             SdnntGranularityRecord.model_validate(record)
-            for record in self._client.admin_request(
-                "GET", f"sdnnt/sync/granularity/{id}"
+            for record in self._client.request(
+                "GET", f"api/admin/v7.0/sdnnt/sync/granularity/{id}"
             ).get(id)
         ]

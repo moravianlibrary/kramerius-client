@@ -71,7 +71,7 @@ class KrameriusClient:
                 endpoint="api/client/v7.0/search",
                 id_field="pid",
                 page_size=PAGINATE_PAGE_SIZE,
-                timeout=config.timeout or 30,
+                timeout=config.timeout,
             )
         )
         self.Statistics = StatisticsClient(self._base)
