@@ -6,7 +6,11 @@ from ..schemas import (
     KrameriusSingleProcess,
     ProcessParams,
 )
-from .base import KrameriusBaseClient, response_to_schema
+from .base import (
+    KrameriusBaseClient,
+    response_to_schema,
+    response_to_schema_list,
+)
 
 
 class ProcessingClient:
@@ -42,12 +46,36 @@ class ProcessingClient:
             self._client.request("GET", endpoint), KrameriusSingleProcess
         )
 
+    def page(
+        self,
+        page: int = 1,
+        page_size: int = 10,
+        state: ProcessState | None = None,
+    ) -> list[KrameriusSingleProcess]:
+        params = {
+            "offset": page_size * (page - 1),
+            "limit": page_size,
+            "wt": "json",
+        }
+        if state:
+            params["state"] = state.value
+
+        return response_to_schema_list(
+            self._client.request(
+                "GET",
+                "api/admin/v7.0/processes/batches",
+                params,
+            ),
+            KrameriusSingleProcess,
+            "items",
+        )
+
     def get_count_by_state(self, state: ProcessState) -> int:
         return self._client.request(
             "GET",
             "api/admin/v7.0/processes/batches",
             {"state": state.value, "resultSize": 1},
-        )["total_size"]
+        ).json()["total_size"]
 
     def get_num_active(self) -> int:
         return sum(

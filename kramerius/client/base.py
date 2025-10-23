@@ -1,7 +1,7 @@
 import threading
 from os import path
 from time import sleep
-from typing import Any, Type, TypeVar
+from typing import Any, List, Type, TypeVar
 
 import requests
 from lxml import etree
@@ -265,6 +265,17 @@ def response_to_schema(
     response: requests.Response, schema: Type[AnyModel]
 ) -> AnyModel:
     return schema.model_validate(response.json())
+
+
+def response_to_schema_list(
+    response: requests.Response, schema: Type[AnyModel], items_key: str = None
+) -> List[AnyModel]:
+    if items_key:
+        items = response.json().get(items_key, [])
+    else:
+        items = response.json()
+
+    return [schema.model_validate(item) for item in items]
 
 
 def response_to_bytes(response: requests.Response) -> bytes:

@@ -5,7 +5,11 @@ from ..schemas import (
     SdnntGranularityResponse,
     SdnntResponse,
 )
-from .base import KrameriusBaseClient, response_to_schema
+from .base import (
+    KrameriusBaseClient,
+    response_to_schema,
+    response_to_schema_list,
+)
 
 PAGE_SIZE = 100
 
@@ -47,9 +51,10 @@ class SdnntClient:
             page += 1
 
     def get_sdnnt_granularity(self, id: str) -> SdnntGranularityResponse:
-        return [
-            SdnntGranularityRecord.model_validate(record)
-            for record in self._client.request(
+        return response_to_schema_list(
+            self._client.request(
                 "GET", f"api/admin/v7.0/sdnnt/sync/granularity/{id}"
-            ).get(id)
-        ]
+            ),
+            SdnntGranularityRecord,
+            items_key=id,
+        )
