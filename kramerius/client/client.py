@@ -67,7 +67,7 @@ class KrameriusClient:
         self.Sdnnt = SdnntClient(self._base)
         self.Search = SearchClient(
             SolrConfig(
-                host=config.host,
+                host=str(config.host),
                 endpoint="api/client/v7.0/search",
                 id_field="pid",
                 page_size=PAGINATE_PAGE_SIZE,
