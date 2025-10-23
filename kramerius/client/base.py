@@ -87,7 +87,10 @@ class KrameriusBaseClient:
         """
 
         response = requests.get(
-            url=f"{self._host}/api/exts/v7.0/tokens/{self.config.client_id}",
+            url=(
+                f"{self.config.host}/api/exts/v7.0/"
+                f"tokens/{self.config.client_id}"
+            ),
             params={"secrets": self.config.service_account_secret},
             timeout=self.config.timeout,
         )
