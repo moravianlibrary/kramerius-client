@@ -78,6 +78,8 @@ class KrameriusField(MappingEnum):
     PageCount = "count_page"
 
     KeywordsFacet = "keywords.facet"
+
+    RelsExtIndex = "rels_ext_index.sort"
     ImageFullMimeType = "ds.img_full.mime"
     IndexerVersion = "indexer_version"
 
