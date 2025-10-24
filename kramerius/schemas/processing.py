@@ -110,3 +110,8 @@ class KrameriusProcess(BaseModel):
 class KrameriusSingleProcess(BaseModel):
     batch: KrameriusProcessBatch
     process: KrameriusProcess
+
+
+class KrameriusBatchOfProcesses(BaseModel):
+    batch: KrameriusProcessBatch
+    processes: List[KrameriusProcess]

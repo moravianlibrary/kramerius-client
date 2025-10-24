@@ -1,3 +1,5 @@
+from kramerius.schemas.processing import KrameriusBatchOfProcesses
+
 from ..definitions import ProcessType
 from ..definitions.processing import ProcessState
 from ..schemas import (
@@ -66,8 +68,8 @@ class ProcessingClient:
                 "api/admin/v7.0/processes/batches",
                 params,
             ),
-            KrameriusSingleProcess,
-            "items",
+            KrameriusBatchOfProcesses,
+            "batches",
         )
 
     def get_count_by_state(self, state: ProcessState) -> int:
