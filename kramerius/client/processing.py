@@ -1,3 +1,5 @@
+from typing import List
+
 from kramerius.schemas.processing import KrameriusBatchOfProcesses
 
 from ..definitions import ProcessType
@@ -53,7 +55,7 @@ class ProcessingClient:
         page: int = 1,
         page_size: int = 10,
         state: ProcessState | None = None,
-    ) -> list[KrameriusSingleProcess]:
+    ) -> List[KrameriusBatchOfProcesses]:
         params = {
             "offset": page_size * (page - 1),
             "limit": page_size,
