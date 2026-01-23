@@ -161,11 +161,11 @@ def _plan_process(
     type: ProcessType,
     params: ProcessParams | None = None,
 ):
-    retry_timeout = client._base._retry_timeout
+    retry_timeout = client._base.config.retry_timeout
 
     while (
         client.Processing.get_num_active()
-        >= client._base._max_active_processes
+        >= client._base.config.max_active_processes
     ):
         _echo_log(
             ctx,
@@ -191,8 +191,8 @@ def _run_process(
     _echo_log(ctx, f"Process of type {type.value} and UUID {uuid} started.")
 
     fail_count = 0
-    max_retries = client._base._max_retries
-    retry_timeout = client._base._retry_timeout
+    max_retries = client._base.config.max_retries
+    retry_timeout = client._base.config.retry_timeout
 
     while state in [ProcessState.Planned, ProcessState.Running]:
         sleep(retry_timeout)
