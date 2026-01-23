@@ -72,8 +72,8 @@ def main(
         envvar="K7_RETRY_TIMEOUT",
         help="Timeout between retries in seconds",
     ),
-    max_active_processes: Optional[int] = typer.Option(
-        None,
+    max_active_processes: int = typer.Option(
+        3,
         help="Maximum number of active processes",
     ),
     log_dir: Path = typer.Option(
