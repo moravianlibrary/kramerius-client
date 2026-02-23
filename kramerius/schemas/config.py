@@ -8,6 +8,7 @@ DEFAULT_MAX_ACTIVE_PROCESSES = 2
 
 class KrameriusConfig(BaseModel):
     host: HttpUrl
+    solr_cloud: bool = False
     client_id: str | None = None
     service_account_secret: str | None = None
     keycloak_host: HttpUrl | None = None

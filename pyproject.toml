@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kramerius"
-version = "0.3.0"
+version = "0.3.1"
 description = "Kramerius v7 Client"
 authors = [
     {name = "Robert Randiak", email = "randiak@protonmail.com"}

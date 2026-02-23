@@ -69,7 +69,7 @@ class KrameriusClient:
             SolrConfig(
                 host=str(config.host),
                 endpoint="api/client/v7.0/search",
-                id_field="pid",
+                id_field=config.solr_cloud and "compositeId" or "pid",
                 page_size=PAGINATE_PAGE_SIZE,
                 timeout=config.timeout,
             )
