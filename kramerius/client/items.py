@@ -42,6 +42,12 @@ class ItemsClient:
         return response.json()["model"]
 
     def get_foxml_full(self, pid: str) -> Xml:
+        """
+        Retrieves full admin foxml of document
+        :param pid: uuid
+        :return: Xml structure
+        :raises: HTTPError on responses other than code 200
+        """
         response: requests.Response = self._client.request(
             "GET",
             f"api/admin/v7.0/items/{pid}/info/structure",
@@ -52,6 +58,12 @@ class ItemsClient:
         return response_to_xml(response)
 
     def get_imageserver_location_full(self, pid: str) -> str:
+        """
+        Retrieves location of IMG_FULL scan
+        :param pid: uuid
+        :return: str http address on imageserver
+        :raises: HTTPError on responses other than code 200
+        """
         ds_id = "IMG_FULL"
         response: requests.Response = self._client.request(
             "GET",
