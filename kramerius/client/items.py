@@ -49,7 +49,7 @@ class ItemsClient:
         """
         response: requests.Response = self._client.request(
             "GET",
-            f"api/admin/v7.0/items/{pid}/ocr/text",
+            f"api/client/v7.0/items/{pid}/ocr/text",
             data_type="text/plain",
         )
         if response.status_code != 200:
@@ -86,7 +86,7 @@ class ItemsClient:
         """
         response: requests.Response = self._client.request(
             "GET",
-            f"api/admin/v7.0/items/{pid}/info/structure",
+            f"api/admin/v7.0/items/{pid}/foxml",
         )
         if response.status_code != 200:
             raise HTTPError(f"{response.status_code}: {response.text}")
