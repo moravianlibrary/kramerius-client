@@ -1,9 +1,10 @@
+import requests
 from requests import HTTPError
 
 from kramerius.definitions.akubra import Xml
+from kramerius.definitions.foxml import DatastreamId
 
 from .base import KrameriusBaseClient, response_to_bytes, response_to_xml
-import requests
 
 
 class ItemsClient:
@@ -58,7 +59,10 @@ class ItemsClient:
 
     def get_ocr_text_all_child_pages(self, pid: str) -> str:
         """
-        Retrieves and concatenates OCR from children of :param pid: . Each page concatenated with a newline. If a child of :param pid: does not have ocr a warning message is printed but the process does not fail.
+        Retrieves and concatenates OCR from children of :param pid:.
+        Each page concatenated with a newline.
+        If a child of :param pid: does not have OCR,
+        a warning message is printed but the process does not fail.
         :param pid: uuid
         :return: string of OCR texts
         """
@@ -66,16 +70,21 @@ class ItemsClient:
         text: str = ""
         for child in children:
             try:
-                child_text = self.get_ocr_text(child['pid'])
+                child_text = self.get_ocr_text(child["pid"])
             except HTTPError:
-                print(f"Child {child['pid']} isn't a page or just doesn't have OCR")
+                print(
+                    f"Child {child['pid']} isn't a page "
+                    "or just doesn't have OCR"
+                )
                 continue
-            text += child_text + '\n'
+            text += child_text + "\n"
 
         if text == "":
-            print(f"FINAL: Document {pid} doesn't have pages or none of them had OCR")
+            print(
+                f"FINAL: Document {pid} doesn't have pages "
+                "or none of them had OCR"
+            )
         return text
-
 
     def get_foxml_full(self, pid: str) -> Xml:
         """
@@ -99,10 +108,10 @@ class ItemsClient:
         :return: str http address on imageserver
         :raises: HTTPError on responses other than code 200
         """
-        ds_id = "IMG_FULL"
         response: requests.Response = self._client.request(
             "GET",
-            f"api/admin/v7.0/repository/getDatastreamMetadata?pid={pid}&dsId={ds_id}",
+            "api/admin/v7.0/repository/getDatastreamMetadata",
+            params={"pid": pid, "dsId": DatastreamId.ImgFull.value},
         )
         if response.status_code != 200:
             raise HTTPError(f"{response.status_code}: {response.text}")
