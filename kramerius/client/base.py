@@ -225,12 +225,14 @@ class KrameriusBaseClient:
         if self._token:
             headers["Authorization"] = f"Bearer {self._token}"
 
+        req_timeout = self.config.timeout if self.config.timeout > 0 else None
         response = requests.request(
             method=method,
             url=f"{self.config.host}/{endpoint}",
             headers=headers,
             params=params,
             data=data,
+            timeout=req_timeout,
         )
 
         if response.status_code == 401 or (

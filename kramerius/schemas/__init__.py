@@ -1,5 +1,11 @@
 from .config import KrameriusConfig
 from .document import KrameriusDocument
+from .licenses import (
+    ChangeLicenseOrderingRequest,
+    CreateLocalLicenseRequest,
+    License,
+    UpdateLocalLicenseRequest,
+)
 from .processing import (
     AddLicenseParams,
     DeleteTreeParams,
@@ -15,6 +21,24 @@ from .processing import (
     ProcessParams,
     RemoveLicenseParams,
 )
+from .rights import (
+    CreateRightParamRequest,
+    CreateRightRequest,
+    CriteriumTypeMetadata,
+    RightCriteriumParamsPayload,
+    RightCriteriumPayload,
+    RightCriteriumView,
+    RightDeleteResult,
+    RightParamDeleteResult,
+    RightParamRecord,
+    RightRecord,
+    RightRoleRef,
+    RightsActionsResponse,
+    RightsListParams,
+    UpdateRightParamRequest,
+    UpdateRightRequest,
+)
+from .roles import CreateRoleRequest, Role, RoleListParams, UpdateRoleRequest
 from .sdnnt import (
     SdnntGranularityRecord,
     SdnntGranularityResponse,
@@ -25,11 +49,17 @@ from .search import SearchParams
 
 __all__ = [
     "AddLicenseParams",
+    "ChangeLicenseOrderingRequest",
     "DeleteTreeParams",
     "EmptyParams",
     "ImportMetsParams",
     "ImportParams",
     "IndexParams",
+    "CreateLocalLicenseRequest",
+    "CreateRightParamRequest",
+    "CreateRightRequest",
+    "CreateRoleRequest",
+    "CriteriumTypeMetadata",
     "KrameriusConfig",
     "KrameriusDocument",
     "KrameriusPlanProcess",
@@ -37,11 +67,28 @@ __all__ = [
     "KrameriusProcessBatch",
     "KrameriusProcessPlanResponse",
     "KrameriusSingleProcess",
+    "License",
     "ProcessParams",
+    "RightCriteriumPayload",
+    "RightCriteriumParamsPayload",
+    "RightCriteriumView",
+    "RightDeleteResult",
+    "RightParamDeleteResult",
+    "RightParamRecord",
+    "RightRecord",
+    "RightRoleRef",
+    "RightsActionsResponse",
+    "RightsListParams",
+    "Role",
+    "RoleListParams",
     "RemoveLicenseParams",
     "SdnntGranularityRecord",
     "SdnntGranularityResponse",
     "SdnntRecord",
     "SdnntResponse",
     "SearchParams",
+    "UpdateLocalLicenseRequest",
+    "UpdateRightParamRequest",
+    "UpdateRightRequest",
+    "UpdateRoleRequest",
 ]

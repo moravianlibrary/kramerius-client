@@ -4,7 +4,10 @@ from ..schemas import KrameriusConfig
 from .akubra import AkubraClient
 from .base import KrameriusBaseClient
 from .items import ItemsClient
+from .licenses import LicensesClient
 from .processing import ProcessingClient
+from .rights import RightsClient
+from .roles import RolesClient
 from .sdnnt import SdnntClient
 from .search import SearchClient
 from .statistics import StatisticsClient
@@ -31,6 +34,12 @@ class KrameriusClient:
     ----------
     Items : ItemsClient
         Sub-client for managing items (e.g., metadata, digital objects).
+    Licenses : LicensesClient
+        Sub-client for admin license CRUD, ordering, and moves.
+    Roles : RolesClient
+        Sub-client for admin roles (list, create, update, delete).
+    Rights : RightsClient
+        Sub-client for admin rights, criteria, and related params/licenses.
     Processing : ProcessingClient
         Sub-client for managing processes
         (e.g., reindexation, changing of licenses).
@@ -63,6 +72,9 @@ class KrameriusClient:
         self._base = KrameriusBaseClient(config)
 
         self.Items = ItemsClient(self._base)
+        self.Licenses = LicensesClient(self._base)
+        self.Roles = RolesClient(self._base)
+        self.Rights = RightsClient(self._base)
         self.Processing = ProcessingClient(self._base)
         self.Sdnnt = SdnntClient(self._base)
         self.Search = SearchClient(

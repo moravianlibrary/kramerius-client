@@ -1,3 +1,4 @@
+from .criteria import RightsCriterium
 from .foxml import TreePredicate
 from .kramerius import (
     Accessibility,
@@ -9,7 +10,13 @@ from .kramerius import (
     Pid,
     validate_pid,
 )
-from .licenses import License
+from .licenses import (
+    ExclusiveLockType,
+    GlobalLicense,
+    License,
+    LicenseGroup,
+    RuntimeLicenseType,
+)
 from .processing import (
     IndexationType,
     ObjectScope,
@@ -21,9 +28,13 @@ from .sdnnt import SdnntRecordType, SdnntState, SdnntSyncAction
 
 __all__ = [
     "Accessibility",
+    "RightsCriterium",
     "IndexationType",
+    "ExclusiveLockType",
+    "GlobalLicense",
     "KrameriusField",
     "License",
+    "LicenseGroup",
     "Method",
     "MimeType",
     "Model",
@@ -33,6 +44,7 @@ __all__ = [
     "Pid",
     "ProcessState",
     "ProcessType",
+    "RuntimeLicenseType",
     "SdnntRecordType",
     "SdnntState",
     "SdnntSyncAction",

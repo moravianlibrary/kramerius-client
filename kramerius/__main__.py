@@ -21,6 +21,7 @@ from kramerius.schemas.processing import (
 
 from .client import KrameriusClient
 from .definitions import ProcessType, SdnntSyncAction, validate_pid
+from .features.access_control.push import push_access_control
 from .parsers import chunked
 from .schemas import AddLicenseParams, KrameriusConfig, SearchParams
 
@@ -526,6 +527,62 @@ def index_upgrade(
         _echo_log(ctx, "Retrying in 10 minutes...")
         sleep(600)
         index_upgrade(ctx, indexer_version)
+
+
+@app.command("push-access-control")
+def push_access_control_cmd(
+    ctx: typer.Context,
+    root: Path = typer.Option(
+        ...,
+        "--dir",
+        "-d",
+        help=(
+            "Directory with licenses.yaml and access-control/*.yaml "
+            "(same layout as get-access-control)."
+        ),
+        file_okay=False,
+        dir_okay=True,
+        exists=True,
+        readable=True,
+        resolve_path=True,
+    ),
+    repo_pid: str = typer.Option(
+        "uuid:1",
+        "--repo-pid",
+        help="Repository PID for repo-level rights in YAML.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Print POST/DELETE that would run; do not call the API.",
+    ),
+):
+    """
+    Sync in order: licenses
+    (create/prune local, then order like licenses.yaml),
+    roles (from actors' roles lists), /rights/params for actors with ips, then
+    rights (POST/DELETE).
+
+    By default, POSTs missing roles. --prune-roles removes extra roles
+    (and their rights first). Rights prune is on unless --no-prune-rights.
+    """
+    client: KrameriusClient = ctx.obj["client"]
+    repo = repo_pid.strip()
+    if not repo:
+        typer.echo("--repo-pid must be non-empty.", err=True)
+        raise typer.Exit(code=1)
+    try:
+        push_access_control(
+            client,
+            root,
+            repo_pid=repo,
+            dry_run=dry_run,
+            log=lambda m: _echo_log(ctx, m),
+        )
+    except Exception as e:
+        _echo_log(ctx, f"push-access-control failed: {e}", err=True)
+        raise typer.Exit(code=1) from e
+    _echo_log(ctx, "push-access-control finished.")
 
 
 if __name__ == "__main__":

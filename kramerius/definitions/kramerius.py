@@ -7,6 +7,8 @@ from pydantic import AfterValidator
 from solrify import MappingEnum
 from typing_extensions import Annotated
 
+DEFAULT_REPO_PID = "uuid:1"
+
 Method = Literal["GET", "OPTIONS", "HEAD", "POST", "PUT", "PATCH", "DELETE"]
 type Params = Dict[str, Any]
 
