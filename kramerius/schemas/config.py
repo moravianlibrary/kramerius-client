@@ -30,3 +30,6 @@ class KrameriusConfig(BaseModel):
     max_active_processes: int = Field(
         2, ge=1, description="Maximum number of concurrent processes."
     )
+    search_page_size: int = Field(
+        10000, ge=1, description="Number of rows per page for Solr search."
+    )

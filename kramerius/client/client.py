@@ -9,9 +9,6 @@ from .sdnnt import SdnntClient
 from .search import SearchClient
 from .statistics import StatisticsClient
 
-PAGINATE_PAGE_SIZE = 10000
-
-
 class KrameriusClient:
     """
     High-level client interface for interacting with the Kramerius API.
@@ -70,7 +67,7 @@ class KrameriusClient:
                 host=str(config.host),
                 endpoint="api/client/v7.0/search",
                 id_field=config.solr_cloud and "compositeId" or "pid",
-                page_size=PAGINATE_PAGE_SIZE,
+                page_size=config.search_page_size,
                 timeout=config.timeout,
             )
         )
