@@ -2,5 +2,5 @@ dotenv
 lxml
 pydantic
 requests
-solrify @ git+https://github.com/moravianlibrary/solrify.git@v0.1.0
+solrify @ git+https://github.com/moravianlibrary/solrify.git@v0.1.1
 typer
