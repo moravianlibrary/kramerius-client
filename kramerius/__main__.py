@@ -8,6 +8,7 @@ from typing import List, Optional
 
 import typer
 from dotenv import load_dotenv
+from lxml import etree
 from pydantic import BaseModel
 from solrify import F
 
@@ -40,11 +41,17 @@ def main(
     host: Optional[str] = typer.Option(
         None, envvar="K7_HOST", help="Kramerius server host"
     ),
-    keycloak_host: Optional[str] = typer.Option(
-        None, envvar="K7_KEYCLOAK_HOST", help="Keycloak server host"
+    solr_cloud: Optional[bool] = typer.Option(
+        False, envvar="K7_SOLR_CLOUD", help="Whether to use Solr Cloud"
     ),
     client_id: Optional[str] = typer.Option(
         None, envvar="K7_CLIENT_ID", help="Keycloak client ID"
+    ),
+    service_account_secret: Optional[str] = typer.Option(
+        None, envvar="K7_SERVICE_ACCOUNT_SECRET", help="Service account secret"
+    ),
+    keycloak_host: Optional[str] = typer.Option(
+        None, envvar="K7_KEYCLOAK_HOST", help="Keycloak server host"
     ),
     client_secret: Optional[str] = typer.Option(
         None, envvar="K7_CLIENT_SECRET", help="Keycloak client secret"
@@ -95,8 +102,10 @@ def main(
     ctx.obj["client"] = KrameriusClient(
         KrameriusConfig(
             host=host,
-            keycloak_host=keycloak_host,
+            solr_cloud=solr_cloud,
             client_id=client_id,
+            service_account_secret=service_account_secret,
+            keycloak_host=keycloak_host,
             client_secret=client_secret,
             username=username,
             password=password,
@@ -526,6 +535,125 @@ def index_upgrade(
         _echo_log(ctx, "Retrying in 10 minutes...")
         sleep(600)
         index_upgrade(ctx, indexer_version)
+
+
+@app.command()
+def get_ocr_text(
+    ctx: typer.Context,
+    pid: Optional[str] = PidOption,
+    pids_file: Optional[str] = PidsFileOption,
+):
+    client: KrameriusClient = ctx.obj["client"]
+
+    _validate_pid_input(pid, pids_file)
+
+    pids = [pid] if pid else []
+    if pids_file:
+        with open(pids_file, "r") as file:
+            pids.extend(line.strip() for line in file if line.strip())
+
+    for pid in pids:
+        pid = validate_pid(pid)
+        try:
+            ocr_text = client.Items.get_ocr_text(pid)
+            _echo_log(ctx, f"OCR text for PID '{pid}': {ocr_text}")
+        except Exception as e:
+            _echo_log(ctx, f"Failed to retrieve OCR text for PID '{pid}': {e}")
+
+
+@app.command()
+def get_ocr_text_all_child_pages(
+    ctx: typer.Context,
+    pid: Optional[str] = PidOption,
+    pids_file: Optional[str] = PidsFileOption,
+):
+    client: KrameriusClient = ctx.obj["client"]
+
+    _validate_pid_input(pid, pids_file)
+
+    pids = [pid] if pid else []
+    if pids_file:
+        with open(pids_file, "r") as file:
+            pids.extend(line.strip() for line in file if line.strip())
+
+    for pid in pids:
+        pid = validate_pid(pid)
+        try:
+            ocr_text = client.Items.get_ocr_text_all_child_pages(pid)
+            _echo_log(ctx, f"OCR text for PID '{pid}': {ocr_text}")
+        except Exception as e:
+            _echo_log(ctx, f"Failed to retrieve OCR text for PID '{pid}': {e}")
+
+
+@app.command()
+def get_foxml_full(
+    ctx: typer.Context,
+    pid: Optional[str] = PidOption,
+    pids_file: Optional[str] = PidsFileOption,
+):
+    client: KrameriusClient = ctx.obj["client"]
+
+    _validate_pid_input(pid, pids_file)
+
+    pids = [pid] if pid else []
+    if pids_file:
+        with open(pids_file, "r") as file:
+            pids.extend(line.strip() for line in file if line.strip())
+
+    for pid in pids:
+        pid = validate_pid(pid)
+        try:
+            foxml_full = client.Items.get_foxml_full(pid)
+            _echo_log(ctx, f"FOXML full for PID '{pid}':")
+            _echo_log(
+                ctx,
+                etree.tostring(
+                    foxml_full,
+                    pretty_print=True,
+                    encoding="utf-8",
+                    xml_declaration=True,
+                ).decode("utf-8"),
+            )
+        except Exception as e:
+            _echo_log(
+                ctx,
+                f"Failed to retrieve FOXML full for PID '{pid}': {e}",
+                err=True,
+            )
+
+
+@app.command()
+def get_imageserver_location_full(
+    ctx: typer.Context,
+    pid: Optional[str] = PidOption,
+    pids_file: Optional[str] = PidsFileOption,
+):
+    client: KrameriusClient = ctx.obj["client"]
+
+    _validate_pid_input(pid, pids_file)
+
+    pids = [pid] if pid else []
+    if pids_file:
+        with open(pids_file, "r") as file:
+            pids.extend(line.strip() for line in file if line.strip())
+
+    for pid in pids:
+        pid = validate_pid(pid)
+        try:
+            imageserver_location_full = (
+                client.Items.get_imageserver_location_full(pid)
+            )
+            _echo_log(
+                ctx,
+                f"Imageserver location full for PID '{pid}': "
+                f"{imageserver_location_full}",
+            )
+        except Exception as e:
+            _echo_log(
+                ctx,
+                "Failed to retrieve Imageserver location full "
+                f"for PID '{pid}': {e}",
+            )
 
 
 if __name__ == "__main__":
