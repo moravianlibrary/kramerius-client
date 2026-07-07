@@ -41,6 +41,13 @@ class ItemsClient:
         )
         return response.json()["model"]
 
+    def get_structure_json(self, pid: str) -> str:
+        response: requests.Response = self._client.request(
+            "GET",
+            f"api/client/v7.0/items/{pid}/info/structure",
+        )
+        return response.json()
+
     def get_ocr_text(self, pid: str) -> str:
         """
         Retrieves OCR text as string, no editing from source.
