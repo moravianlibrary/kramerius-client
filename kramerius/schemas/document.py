@@ -62,3 +62,5 @@ class KrameriusDocument(BaseModel):
 
     keywords_facet: List[str] | None = Field(None, alias="keywords.facet")
     image_full_mime_type: str | None = Field(None, alias="ds.img_full.mime")
+
+    rels_ext_index_sort: int | None = Field(None, alias="rels_ext_index.sort")
