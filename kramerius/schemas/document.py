@@ -64,3 +64,6 @@ class KrameriusDocument(BaseModel):
     image_full_mime_type: str | None = Field(None, alias="ds.img_full.mime")
 
     rels_ext_index_sort: int | None = Field(None, alias="rels_ext_index.sort")
+
+    page_index: int | None = Field(None, alias="page.index")
+    page_number: str | None = Field(None, alias="page.number")
