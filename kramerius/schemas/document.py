@@ -68,3 +68,6 @@ class KrameriusDocument(BaseModel):
     page_index: int | None = Field(None, alias="page.index")
     page_number: str | None = Field(None, alias="page.number")
     page_type: str | None = Field(None, alias="page.type")
+
+    created: str | None = Field(None, alias="created")
+    modified: str | None = Field(None, alias="modified")
