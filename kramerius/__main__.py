@@ -22,7 +22,12 @@ from kramerius.schemas.processing import (
 from .client import KrameriusClient
 from .definitions import ProcessType, SdnntSyncAction, validate_pid
 from .parsers import chunked
-from .schemas import AddLicenseParams, KrameriusConfig, SearchParams
+from .schemas import (
+    AddLicenseParams,
+    KrameriusConfig,
+    RemoveLicenseParams,
+    SearchParams,
+)
 
 load_dotenv()
 
@@ -397,6 +402,7 @@ def add_license(
 
     if pid:
         _run_process(
+            ctx,
             client,
             ProcessType.AddLicense,
             AddLicenseParams(pid=validate_pid(pid, True), license=license),
@@ -427,9 +433,10 @@ def remove_license(
 
     if pid:
         _run_process(
+            ctx,
             client,
             ProcessType.RemoveLicense,
-            AddLicenseParams(pid=validate_pid(pid, True), license=license),
+            RemoveLicenseParams(pid=validate_pid(pid, True), license=license),
         )
     if pids_file:
         with open(pids_file, "r") as file:
@@ -439,7 +446,7 @@ def remove_license(
             ctx,
             client,
             ProcessType.RemoveLicense,
-            AddLicenseParams(pidlist=valid_pids, license=license),
+            RemoveLicenseParams(pidlist=valid_pids, license=license),
             True,
         )
 

@@ -1,6 +1,6 @@
 from enum import Enum
 
-from lxml import etree
+import lxml.etree as etree
 
 type Xml = etree._Element
 

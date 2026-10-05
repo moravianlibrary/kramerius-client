@@ -19,11 +19,14 @@ class SdnntClient:
         self._client = client
 
     def get_sdnnt_timestamp(self, tzinfo=timezone.utc) -> datetime | None:
-        timestamp = (
-            self._client.request("GET", "api/admin/v7.0/sdnnt/sync/timestamp")
-            .get("docs")[0]
-            .get("fetched")
+        docs = (
+            self._client.request(
+                "GET", "api/admin/v7.0/sdnnt/sync/timestamp"
+            )
+            .json()
+            .get("docs")
         )
+        timestamp = docs[0].get("fetched") if docs else None
         return (
             datetime.strptime(timestamp, "%Y-%m-%dT%H:%M:%S.%fZ").replace(
                 tzinfo=tzinfo

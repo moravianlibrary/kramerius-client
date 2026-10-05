@@ -37,7 +37,14 @@ class KrameriusDocument(BaseModel):
     )
 
     @property
-    def isxn(self) -> str | None:
+    def isxn(self) -> List[str] | None:
+        """Whichever of ISBN or ISSN this document carries.
+
+        Both are lists — a document may hold several — so this is one too.
+        It was declared `str | None`, which no caller could have relied on
+        without getting a list where it expected a string.
+        """
+
         return self.isbn or self.issn
 
     date_min: str | None = Field(default=None, alias="date.min")

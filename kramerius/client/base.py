@@ -4,7 +4,7 @@ from time import sleep
 from typing import Any, List, Type, TypeVar
 
 import requests
-from lxml import etree
+import lxml.etree as etree
 from pydantic import BaseModel
 
 from kramerius.definitions.akubra import Xml
@@ -219,7 +219,10 @@ class KrameriusBaseClient:
         requests.Response
             The final response object after retries or token refresh.
         """
-        headers = {} if (data_type and data) or self._token else None
+        # Built as a dict and handed over as None when empty: the old form
+        # started from None and then subscripted it, which was safe only
+        # because the same two conditions decided both.
+        headers: dict[str, str] = {}
         if data_type and data:
             headers["Content-Type"] = data_type
         if self._token:
@@ -228,7 +231,7 @@ class KrameriusBaseClient:
         response = requests.request(
             method=method,
             url=f"{self.config.host}/{endpoint}",
-            headers=headers,
+            headers=headers or None,
             params=params,
             data=data,
         )
@@ -278,7 +281,9 @@ def response_to_schema(
 
 
 def response_to_schema_list(
-    response: requests.Response, schema: Type[AnyModel], items_key: str = None
+    response: requests.Response,
+    schema: Type[AnyModel],
+    items_key: str | None = None,
 ) -> List[AnyModel]:
     if items_key:
         items = response.json().get(items_key, [])

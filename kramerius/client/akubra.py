@@ -1,6 +1,6 @@
 from typing import List
 
-from lxml import etree
+import lxml.etree as etree
 
 from ..definitions.akubra import FoxmlExportFormat, Xml
 from ..schemas.akubra import (
