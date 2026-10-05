@@ -16,20 +16,25 @@ class KrameriusConfig(BaseModel):
     username: str | None = None
     password: str | None = None
     timeout: int = Field(
-        30, ge=0, le=300, description="Timeout for HTTP requests in seconds."
+        default=30,
+        ge=0,
+        le=300,
+        description="Timeout for HTTP requests in seconds.",
     )
     max_retries: int = Field(
-        5,
+        default=5,
         ge=0,
         le=10,
         description="Maximum number of retries for failed requests.",
     )
     retry_timeout: int = Field(
-        15, ge=2, le=60, description="Timeout for retries in seconds."
+        default=15, ge=2, le=60, description="Timeout for retries in seconds."
     )
     max_active_processes: int = Field(
-        2, ge=1, description="Maximum number of concurrent processes."
+        default=2, ge=1, description="Maximum number of concurrent processes."
     )
     search_page_size: int = Field(
-        10000, ge=1, description="Number of rows per page for Solr search."
+        default=10000,
+        ge=1,
+        description="Number of rows per page for Solr search.",
     )
